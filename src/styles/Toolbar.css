@@ -1,0 +1,44 @@
+/* Toolbar.css */
+.toolbar {
+  display: flex;
+  justify-content: center; /* Center links */
+  background: #ffffff; /* White background */
+  padding: 18px 32px; /* More padding */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+  border-bottom: none; /* Remove previous border */
+}
+
+.toolbar-links {
+  display: flex;
+  gap: 30px; /* Increased gap between links */
+}
+
+.toolbar-link {
+  color: #495057; /* Darker gray for links */
+  text-decoration: none;
+  font-size: 1.1rem; /* Slightly larger font */
+  font-weight: 500;
+  position: relative; /* For underline effect */
+  padding-bottom: 4px; /* Space for underline */
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.toolbar-link:hover {
+  color: #007bff; /* Primary blue on hover */
+  transform: translateY(-2px); /* Slight lift on hover */
+}
+
+.toolbar-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #007bff; /* Underline color */
+  transition: width 0.3s ease;
+}
+
+.toolbar-link:hover::after {
+  width: 100%; /* Expand underline on hover */
+}
