@@ -1,0 +1,27 @@
+/* CSS riêng cho giao diện Owner */
+
+.owner-root {
+  background: #f4f6fa;
+  min-height: 100vh;
+}
+
+.owner-main-content {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(99,102,241,0.08);
+  padding: 32px;
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.owner-table-header {
+  background: linear-gradient(90deg, #6366f1 0%, #06b6d4 100%);
+  color: #fff;
+  font-weight: 700;
+}
+
+.owner-avatar {
+  background: #fff !important;
+  color: #6366f1 !important;
+  font-weight: 700;
+} 
