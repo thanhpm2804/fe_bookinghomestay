@@ -70,66 +70,70 @@ const GuestSearchBar = ({ onSearch }) => {
 
   return (
     <form className="guest-search-bar" onSubmit={handleSubmit}>
-      <input
-        type="text"
-        className="search-input"
-        placeholder="Tên homestay"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <input
-        type="text"
-        className="search-input"
-        placeholder="Địa chỉ"
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-      />
-      
-      <select
-        className="search-input"
-        value={district}
-        onChange={handleDistrictChange}
-        disabled={loadingDistricts}
-      >
-        <option value="">
-          {loadingDistricts ? "Đang tải..." : "Chọn Quận/Huyện"}
-        </option>
-        {districts.map(dist => (
-          <option key={dist.DistrictId || dist.id} value={dist.DistrictId || dist.id}>
-            {dist.Name || dist.name}
+      {/* Hàng đầu tiên: Địa chỉ, Quận/Huyện, Phường/Xã, Check-in, Check-out */}
+      <div className="search-row">
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Địa chỉ"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        />
+        <select
+          className="search-input"
+          value={district}
+          onChange={handleDistrictChange}
+          disabled={loadingDistricts}
+        >
+          <option value="">
+            {loadingDistricts ? "Đang tải..." : "Chọn Quận/Huyện"}
           </option>
-        ))}
-      </select>
-
-      <select
-        className="search-input"
-        value={ward}
-        onChange={(e) => setWard(e.target.value)}
-        disabled={!district || loadingWards}
-      >
-        <option value="">
-          {loadingWards ? "Đang tải..." : "Chọn Phường/Xã"}
-        </option>
-        {wards.map(w => (
-          <option key={w.WardId || w.id} value={w.WardId || w.id}>
-            {w.Name || w.name}
+          {districts.map(dist => (
+            <option key={dist.DistrictId || dist.id} value={dist.DistrictId || dist.id}>
+              {dist.Name || dist.name}
+            </option>
+          ))}
+        </select>
+        <select
+          className="search-input"
+          value={ward}
+          onChange={(e) => setWard(e.target.value)}
+          disabled={!district || loadingWards}
+        >
+          <option value="">
+            {loadingWards ? "Đang tải..." : "Chọn Phường/Xã"}
           </option>
-        ))}
-      </select>
+          {wards.map(w => (
+            <option key={w.WardId || w.id} value={w.WardId || w.id}>
+              {w.Name || w.name}
+            </option>
+          ))}
+        </select>
+        <input
+          type="date"
+          className="date-input"
+          value={checkIn}
+          onChange={(e) => setCheckIn(e.target.value)}
+        />
+        <input
+          type="date"
+          className="date-input"
+          value={checkOut}
+          onChange={(e) => setCheckOut(e.target.value)}
+        />
+      </div>
 
-      <input
-        type="date"
-        className="date-input"
-        value={checkIn}
-        onChange={(e) => setCheckIn(e.target.value)}
-      />
-      <input
-        type="date"
-        className="date-input"
-        value={checkOut}
-        onChange={(e) => setCheckOut(e.target.value)}
-      />
-      <button type="submit" className="search-button">Tìm kiếm</button>
+      {/* Hàng thứ hai: Tên homestay và nút tìm kiếm */}
+      <div className="search-row">
+        <input
+          type="text"
+          className="search-input wide"
+          placeholder="Tên homestay"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <button type="submit" className="search-button">Tìm kiếm</button>
+      </div>
     </form>
   );
 };

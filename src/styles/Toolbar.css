@@ -1,44 +1,122 @@
 /* Toolbar.css */
 .toolbar {
   display: flex;
-  justify-content: center; /* Center links */
+  justify-content: space-between; /* Logo bên trái, account bên phải */
+  align-items: center;
   background: #ffffff; /* White background */
   padding: 18px 32px; /* More padding */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow */
   border-bottom: none; /* Remove previous border */
 }
 
-.toolbar-links {
+/* Logo styles */
+.toolbar-logo {
   display: flex;
-  gap: 30px; /* Increased gap between links */
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
-.toolbar-link {
-  color: #495057; /* Darker gray for links */
-  text-decoration: none;
-  font-size: 1.1rem; /* Slightly larger font */
-  font-weight: 500;
-  position: relative; /* For underline effect */
-  padding-bottom: 4px; /* Space for underline */
-  transition: color 0.3s ease, transform 0.3s ease;
+.toolbar-logo:hover {
+  transform: scale(1.05);
 }
 
-.toolbar-link:hover {
-  color: #007bff; /* Primary blue on hover */
-  transform: translateY(-2px); /* Slight lift on hover */
+.logo-image {
+  width: 32px;
+  height: 32px;
 }
 
-.toolbar-link::after {
-  content: '';
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #007bff;
+}
+
+/* Account dropdown styles */
+.toolbar-account {
+  position: relative;
+}
+
+.account-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #495057;
+}
+
+.account-icon:hover {
+  background: #e9ecef;
+  color: #007bff;
+  transform: scale(1.1);
+}
+
+/* Dropdown menu */
+.dropdown-menu {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background-color: #007bff; /* Underline color */
-  transition: width 0.3s ease;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+  animation: fadeInDown 0.3s ease;
 }
 
-.toolbar-link:hover::after {
-  width: 100%; /* Expand underline on hover */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: #f8f9fa;
+  color: #007bff;
+}
+
+.dropdown-item svg {
+  flex-shrink: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .toolbar {
+    padding: 12px 16px;
+  }
+  
+  .logo-text {
+    font-size: 1.2rem;
+  }
+  
+  .dropdown-menu {
+    min-width: 180px;
+  }
 }

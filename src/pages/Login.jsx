@@ -19,6 +19,7 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -28,6 +29,7 @@ function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,7 +53,8 @@ function Login() {
         setIsLoading(false);
         return;
       }
-      localStorage.setItem('token', data.token);
+      // Sử dụng AuthContext để lưu thông tin đăng nhập
+      login(data.user || { email }, data.token);
       setIsLoading(false);
       navigate('/home');
     } catch (err) {

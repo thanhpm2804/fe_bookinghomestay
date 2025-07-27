@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Toolbar from "../components/Toolbar";
 import GuestSearchBar from "../components/GuestSearchBar";
+import Footer from "../components/Footer";
 import styles from "./home/home.module.css";
 
 function Home() {
@@ -60,9 +61,6 @@ function Home() {
     <div className={styles.homeContainer}>
       <Toolbar />
       <div className={styles.contentWrapper}>
-        <div className={styles.filterSidebar}>
-          <h3>Bộ lọc</h3>
-        </div>
         <div className={styles.mainContent}>
           <GuestSearchBar onSearch={handleSearch} />
           
@@ -99,6 +97,7 @@ function Home() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
