@@ -1,8 +1,8 @@
 import { API_BASE_URL } from "../configs/apiConfig";
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YjEzYzBkNC01NDMyLTQyZGYtOWI3Ni04YTE2M2QxMDRjNDIiLCJlbWFpbCI6Im1pbmhuZ3V5ZW5AZXhhbXBsZS5jb20iLCJuYW1laWQiOiI4YjEzYzBkNC01NDMyLTQyZGYtOWI3Ni04YTE2M2QxMDRjNDIiLCJ1bmlxdWVfbmFtZSI6Im1pbmhuZ3V5ZW5AZXhhbXBsZS5jb20iLCJyb2xlIjoiQ3VzdG9tZXIiLCJuYmYiOjE3NTM1OTc3NzYsImV4cCI6MTc1MzYwODU3NiwiaWF0IjoxNzUzNTk3Nzc2LCJpc3MiOiJIb21lc3RheUFQSSIsImF1ZCI6IkhvbWVzdGF5Q2xpZW50In0._lDe2_s6CzguGKims7tQ1h-HxfC7oeXZ5DL6xvPiX_E"
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YjEzYzBkNC01NDMyLTQyZGYtOWI3Ni04YTE2M2QxMDRjNDIiLCJlbWFpbCI6Im1pbmhuZ3V5ZW5AZXhhbXBsZS5jb20iLCJuYW1laWQiOiI4YjEzYzBkNC01NDMyLTQyZGYtOWI3Ni04YTE2M2QxMDRjNDIiLCJ1bmlxdWVfbmFtZSI6Im1pbmhuZ3V5ZW5AZXhhbXBsZS5jb20iLCJyb2xlIjoiQ3VzdG9tZXIiLCJuYmYiOjE3NTM2MTc1MzcsImV4cCI6MTc1MzYyODMzNywiaWF0IjoxNzUzNjE3NTM3LCJpc3MiOiJIb21lc3RheUFQSSIsImF1ZCI6IkhvbWVzdGF5Q2xpZW50In0.7JHyb0NmR4gIwdRkdFlSqiKmo1-WAornIq5Yq4TzKlQ"
 export const getUserInfor = async () => {
     try {
-        const url = `${API_BASE_URL}api/Account/get-user-infor/`;
+        const url = `${API_BASE_URL}api/Account/get-user-info/`;
 
         const response = await fetch(url, {
             method: 'GET',

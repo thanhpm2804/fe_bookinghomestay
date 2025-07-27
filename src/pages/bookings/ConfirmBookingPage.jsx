@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './ConfirmBooking.module.css';
 import { createBooking, getUserInfor } from '../../services/bookingService';
-import { createVNPayUrl } from '../../services/vnpayService';
+import {createVNPayPayment} from '../../services/vnpayService'
 
 const ConfirmBookingPage = () => {
     const location = useLocation();
@@ -130,28 +130,31 @@ const ConfirmBookingPage = () => {
             const roomIds = bookingData.rooms.map((room) => {
                 return room.id
             })
-            /*console.log('Booking data: ', {
+            console.log('Booking data: ', {
                 homestayId: bookingData.homestayId,
                 checkIn: bookingData.checkIn,
                 checkOut: bookingData.checkOut,
                 roomIds: roomIds
-            })*/
+            })
             const response = await createBooking(bookingData.homestayId, bookingData.checkIn, bookingData.checkOut, roomIds)
-            console.log('Create booking successfully with bookingId: ', response.bookingId)
             if (response.error) {
                 console.log('Create booking error: ', response.error)
                 throw new Error(`${response.error}`);
             }
+            //console.log('Create booking successfully with bookingId: ', response.bookingId)
             const paymentBookingData = {
+                bookingId: response.bookingId,
+                homestayId: bookingData.homestayId,
                 homestayName: bookingData.homestayName,
-                totalAmount: response.totalAmount,
+                checkIn: bookingData.checkIn,
+                checkOut: bookingData.checkOut,
+                nights: bookingData.nights,
+                amount: response.totalAmount,
+                roomIds: roomIds || [],
             }
-            // Tạo VNPay URL
-            const vnpayResult = createVNPayUrl(paymentBookingData);
-
+            console.log('paymentBookingData', paymentBookingData)
+            const vnpayResult = await createVNPayPayment (paymentBookingData);
             console.log('VNPay URL:', vnpayResult.paymentUrl);
-
-            // Chuyển hướng đến VNPay
             window.location.href = vnpayResult.paymentUrl;
 
         } catch (error) {
