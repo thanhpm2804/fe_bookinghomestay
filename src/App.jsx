@@ -11,6 +11,13 @@ import HomestayDetailPage from "./pages/homestays/HomestayDetailPage";
 import ConfirmBookingPage from "./pages/bookings/ConfirmBookingPage";
 import Profile from "./pages/Profile";
 
+import OwnerDashboard from "./pages/owner/OwnerDashboard";
+import RoomManagement from "./pages/owner/RoomManagement";
+import HomestayUpdate from "./pages/owner/HomestayUpdate";
+import Revenue from "./pages/owner/Revenue";
+import BookingList from "./pages/owner/BookingList";
+import OwnerWelcome from "./pages/owner/OwnerWelcome";
+
 function App() {
   return (
     <AuthProvider>
@@ -26,8 +33,16 @@ function App() {
         <Route path="/confirm-booking" element={<ConfirmBookingPage />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/owner" element={<OwnerDashboard />}>
+          <Route index element={<OwnerWelcome />} />
+          <Route path="rooms" element={<RoomManagement />} />
+          <Route path="homestay" element={<HomestayUpdate />} />
+          <Route path="revenue" element={<Revenue />} />
+          <Route path="bookings" element={<BookingList />} />
+        </Route>
       </Routes>
     </AuthProvider>
-  );
+  )
 }
+
 export default App;
