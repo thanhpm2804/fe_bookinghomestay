@@ -133,8 +133,12 @@ function RoomManagement() {
 
   // Mở dialog tạo/sửa
   const handleOpenDialog = (room = null) => {
-    console.log(room);
+    console.log('=== handleOpenDialog called ===');
+    console.log('room parameter:', room);
+    console.log('room is null/undefined:', room === null || room === undefined);
+    console.log('current editingRoom before set:', editingRoom);
     setEditingRoom(room);
+    console.log('editingRoom will be set to:', room);
     if (room) {
       setForm({
         name: room.name || room.Name || '',
@@ -496,7 +500,7 @@ function RoomManagement() {
   <Button
     variant="contained"
     startIcon={<AddIcon />}
-    onClick={handleOpenDialog}
+    onClick={() => handleOpenDialog(null)}
     disabled={!selectedHomestayId}
     sx={{ minWidth: 150 }}
   >
@@ -609,7 +613,10 @@ function RoomManagement() {
       </Box>
       {/* Dialog thêm/sửa phòng */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{editingRoom ? 'Cập nhật phòng' : 'Thêm phòng mới'}</DialogTitle>
+        <DialogTitle>
+          {editingRoom ? 'Cập nhật phòng' : 'Thêm phòng mới'} 
+          {editingRoom && ` (ID: ${editingRoom.RoomId || editingRoom.roomId})`}
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             <TextField label="Tên phòng" name="name" value={form.name} onChange={handleChange} fullWidth margin="normal" required />
