@@ -24,9 +24,11 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [accountType, setAccountType] = useState('customer'); // Thêm lựa chọn loại tài khoản
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -66,22 +68,116 @@ function Login() {
 
   // Xử lý đăng nhập Google
   const handleGoogleSuccess = async (credentialResponse) => {
-    const idToken = credentialResponse.credential;
-    const response = await fetch('/api/Account/google-login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
-    });
-    if (response.ok) {
-      const data = await response.json();
-      localStorage.setItem('token', data.token);
-      navigate('/home');
-    } else {
-      alert('Google login failed!');
+    try {
+      const idToken = credentialResponse.credential;
+      console.log('Google login attempt with idToken:', idToken.substring(0, 50) + '...');
+      
+      const response = await fetch('/api/Account/google-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+      
+      console.log('Google login response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Google login success, data:', data);
+        localStorage.setItem('token', data.token);
+        
+        // Parse JWT để lấy role
+        const decoded = parseJwt(data.token);
+        const role = decoded && (decoded.role || (decoded.roles && decoded.roles[0]));
+        
+        if (role === 'Admin') {
+          navigate('/admin');
+        } else if (role === 'Manager') {
+          navigate('/manager');
+        } else {
+          navigate('/home');
+        }
+      } else {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { message: 'Google login failed!' };
+        }
+        console.error('Google login failed:', errorData);
+        
+        // Nếu user chưa tồn tại, tự động đăng ký
+        if (response.status === 404 || errorData.message?.includes('not found') || errorData.message?.includes('not exist')) {
+          console.log('User not found, attempting auto-registration...');
+          await handleAutoRegisterCustomer(credentialResponse);
+        } else {
+          setError(errorData.message || 'Google login failed!');
+        }
+      }
+    } catch (err) {
+      console.error('Google login error:', err);
+      setError('Lỗi kết nối server khi đăng nhập Google!');
     }
   };
-  const handleGoogleError = () => {
-    alert('Google login was unsuccessful. Try again later');
+  
+  const handleGoogleError = (error) => {
+    console.error('Google OAuth error:', error);
+    if (error.error === 'popup_closed_by_user') {
+      setError('Đăng nhập Google bị hủy. Vui lòng thử lại.');
+    } else if (error.error === 'access_denied') {
+      setError('Quyền truy cập bị từ chối. Vui lòng thử lại.');
+    } else {
+      setError('Lỗi đăng nhập Google. Vui lòng thử lại sau.');
+    }
+  };
+
+  // Tự động đăng ký customer khi Google login thất bại
+  const handleAutoRegisterCustomer = async (credentialResponse) => {
+    try {
+      console.log('Auto-registering customer with Google credentials...');
+      
+      const response = await fetch('/api/Account/register-customer-with-google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          idToken: credentialResponse.credential,
+          accountType: 'customer'
+        }),
+      });
+      
+      console.log('Auto-registration response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Auto-registration success:', data);
+        localStorage.setItem('token', data.token);
+        
+        // Parse JWT để lấy role
+        const decoded = parseJwt(data.token);
+        const role = decoded && (decoded.role || (decoded.roles && decoded.roles[0]));
+        
+        setMessage('Đăng ký thành công! Chào mừng bạn đến với hệ thống.');
+        
+        if (role === 'Admin') {
+          navigate('/admin');
+        } else if (role === 'Manager') {
+          navigate('/manager');
+        } else {
+          navigate('/home');
+        }
+      } else {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { message: 'Auto-registration failed!' };
+        }
+        console.error('Auto-registration failed:', errorData);
+        setError(errorData.message || 'Không thể tự động đăng ký. Vui lòng thử lại.');
+      }
+    } catch (err) {
+      console.error('Auto-registration error:', err);
+      setError('Lỗi kết nối server khi tự động đăng ký!');
+    }
   };
 
   return (
@@ -101,27 +197,29 @@ function Login() {
       role="main"
     >
       <Paper
-        elevation={16}
+        elevation={24}
         sx={{
-          width: '100vw',
-          height: '100vh',
-          borderRadius: 0,
+          width: { xs: '95vw', sm: 440 },
+          maxWidth: 480,
+          borderRadius: 5,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 16px 64px 0 rgba(31, 38, 135, 0.25)',
-          background: 'rgba(255,255,255,0.85)',
-          backdropFilter: 'blur(8px)',
-          border: '4px solid',
-          borderImage: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%) 1',
+          boxShadow: '0 8px 40px 0 rgba(31, 38, 135, 0.18)',
+          background: 'rgba(255,255,255,0.92)',
+          backdropFilter: 'blur(10px)',
+          border: '3px solid',
+          borderImage: 'linear-gradient(135deg, #1976d2 0%, #a1c4fd 100%) 1',
           position: 'relative',
           zIndex: 1,
+          px: { xs: 2, sm: 4 },
+          py: { xs: 3, sm: 5 },
         }}
         role="form"
         aria-labelledby="login-title"
       >
-        <Stack alignItems="center" spacing={3} mb={5}>
+        <Stack alignItems="center" spacing={3} mb={4}>
           <Box
             sx={{
               bgcolor: 'linear-gradient(135deg, #1976d2 0%, #a1c4fd 100%)',
@@ -129,6 +227,7 @@ function Login() {
               p: 2.5,
               mb: 1,
               boxShadow: '0 4px 24px 0 rgba(25, 118, 210, 0.18)',
+              border: '2.5px solid #a1c4fd',
             }}
           >
             <LockOutlinedIcon sx={{ color: 'white', fontSize: 56 }} />
@@ -146,6 +245,22 @@ function Login() {
           <Typography variant="h6" color="text.secondary" fontWeight={500}>
             Chào mừng bạn quay trở lại!
           </Typography>
+          <Stack direction="row" spacing={2} mt={1}>
+            <Button
+              variant={accountType === 'customer' ? 'contained' : 'outlined'}
+              onClick={() => setAccountType('customer')}
+              sx={{ fontWeight: 600 }}
+            >
+              Customer
+            </Button>
+            <Button
+              variant={accountType === 'owner' ? 'contained' : 'outlined'}
+              onClick={() => setAccountType('owner')}
+              sx={{ fontWeight: 600 }}
+            >
+              Owner
+            </Button>
+          </Stack>
         </Stack>
         {error && (
           <Alert
@@ -154,6 +269,15 @@ function Login() {
             role="alert"
           >
             {error}
+          </Alert>
+        )}
+        {message && (
+          <Alert
+            severity="success"
+            sx={{ mb: 3, width: '100%', maxWidth: 420, fontSize: 18 }}
+            role="alert"
+          >
+            {message}
           </Alert>
         )}
         <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 420 }}>
@@ -168,9 +292,24 @@ function Login() {
             aria-describedby="email-error"
             sx={{
               bgcolor: 'white',
-              borderRadius: 2,
+              borderRadius: 3,
               fontSize: 22,
-              boxShadow: '0 2px 8px 0 rgba(25, 118, 210, 0.08)',
+              boxShadow: '0 2px 12px 0 rgba(25, 118, 210, 0.10)',
+              border: '2px solid #a1c4fd',
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 3,
+                '& fieldset': {
+                  borderColor: '#a1c4fd',
+                  borderWidth: 2,
+                },
+                '&:hover fieldset': {
+                  borderColor: '#1976d2',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#1976d2',
+                  borderWidth: 2.5,
+                },
+              },
             }}
             InputProps={{ style: { fontSize: 22, height: 64, fontWeight: 500 } }}
             InputLabelProps={{ style: { fontSize: 20 } }}
@@ -186,9 +325,24 @@ function Login() {
             aria-describedby="password-error"
             sx={{
               bgcolor: 'white',
-              borderRadius: 2,
+              borderRadius: 3,
               fontSize: 22,
-              boxShadow: '0 2px 8px 0 rgba(25, 118, 210, 0.08)',
+              boxShadow: '0 2px 12px 0 rgba(25, 118, 210, 0.10)',
+              border: '2px solid #a1c4fd',
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 3,
+                '& fieldset': {
+                  borderColor: '#a1c4fd',
+                  borderWidth: 2,
+                },
+                '&:hover fieldset': {
+                  borderColor: '#1976d2',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#1976d2',
+                  borderWidth: 2.5,
+                },
+              },
             }}
             InputProps={{
               style: { fontSize: 22, height: 64, fontWeight: 500 },
@@ -227,21 +381,24 @@ function Login() {
               py: 1.5,
               fontSize: { xs: '1rem', sm: '1.1rem' },
               fontWeight: 600,
-              borderRadius: 2,
+              borderRadius: 3,
               background: 'linear-gradient(90deg, #1976d2 0%, #a1c4fd 100%)',
-              boxShadow: '0 4px 16px rgba(25, 118, 210, 0.15)',
+              boxShadow: '0 4px 16px rgba(25, 118, 210, 0.18)',
               textTransform: 'none',
+              border: '2.5px solid #a1c4fd',
               transition: 'transform 0.2s, box-shadow 0.2s',
               '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 6px 20px rgba(25, 118, 210, 0.25)',
+                transform: 'translateY(-2px) scale(1.03)',
+                boxShadow: '0 6px 24px rgba(25, 118, 210, 0.25)',
+                background: 'linear-gradient(90deg, #1976d2 0%, #67e8f9 100%)',
+                borderColor: '#1976d2',
               },
             }}
           >
             {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </Button>
         </form>
-        <Divider sx={{ my: 3, width: '100%', maxWidth: 420 }}>hoặc</Divider>
+        <Divider sx={{ my: 3, width: '100%', maxWidth: 420, fontWeight: 700, color: '#1976d2' }}>hoặc</Divider>
         <div style={{ margin: '24px 0', textAlign: 'center' }}>
           <GoogleLogin
             onSuccess={credentialResponse => {
@@ -273,11 +430,11 @@ function Login() {
           spacing={1}
         >
           <Link
-            href="/register"
+            href={accountType === 'customer' ? "/register" : "/register-owner"}
             underline="hover"
             sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, fontWeight: 500 }}
           >
-            Đăng ký
+            Đăng ký {accountType === 'customer' ? 'Customer' : 'Owner'}
           </Link>
           <Link
             href="/forgot-password"

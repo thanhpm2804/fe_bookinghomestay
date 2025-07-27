@@ -10,7 +10,7 @@ export default defineConfig({
       '/api': {
         target: 'https://localhost:7220',
         changeOrigin: true,
-        secure: false, // Nếu backend dùng HTTPS tự ký
+        secure: false,
       },
     },
   },
