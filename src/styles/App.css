@@ -1,8 +1,37 @@
+/* Global styles cho toàn bộ app - full width và căn giữa */
 #root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  min-height: 100vh;
+}
+
+/* Container wrapper cho các page cần giới hạn width */
+.page-container {
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
-  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Container cho các page cần full width (như homestay detail) */
+.page-container-full {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Centered content wrapper */
+.content-centered {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
 }
 
 .logo {
@@ -11,9 +40,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }

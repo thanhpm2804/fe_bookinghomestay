@@ -1,0 +1,319 @@
+/* ConfirmBooking.module.css */
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.cardHeader {
+  background-color: #2196f3;
+  color: white;
+  padding: 16px 20px;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.cardContent {
+  padding: 20px;
+}
+
+.homestayInfo {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.homestayImage {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.homestayDetails h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.homestayDetails p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.dateRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.dateItem {
+  text-align: center;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.dateLabel {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.dateValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.roomItem {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background-color: #fff;
+}
+
+.roomHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.roomName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.roomPrice {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2196f3;
+}
+
+.roomDetails {
+  font-size: 14px;
+  color: #666;
+  margin: 4px 0;
+}
+
+.guestForm {
+  margin-top: 16px;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.formLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.formInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.totalSection {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.totalRow.main {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #ddd;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.button {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.buttonSecondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.buttonSecondary:hover {
+  background-color: #5a6268;
+}
+
+.buttonPrimary {
+  background-color: #2196f3;
+  color: white;
+}
+
+.buttonPrimary:hover {
+  background-color: #1976d2;
+}
+
+.buttonPrimary:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.readOnlyInput {
+  background-color: #f8f9fa !important;
+  color: #6c757d !important;
+  cursor: not-allowed !important;
+  border-color: #dee2e6 !important;
+}
+
+.readOnlyInput:focus {
+  border-color: #dee2e6 !important;
+  box-shadow: none !important;
+}
+
+.helpText {
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.errorMessage {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.policies {
+  margin-top: 20px;
+  padding: 16px;
+  background-color: #fff3cd;
+  border-radius: 8px;
+  border-left: 4px solid #ffc107;
+}
+
+.policies h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #856404;
+}
+
+.policies ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #856404;
+  font-size: 14px;
+}
+
+.policies li {
+  margin-bottom: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .dateRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+  }
+  
+  .homestayInfo {
+    flex-direction: column;
+  }
+  
+  .homestayImage {
+    width: 100%;
+    height: 200px;
+  }
+}

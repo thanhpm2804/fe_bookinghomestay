@@ -1,0 +1,187 @@
+.roomSection {
+  margin-bottom: 3rem;
+}
+
+.sectionHeader {
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 0;
+}
+
+.bookingCard {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: 1px solid #e3e6f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+.formLabel {
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  margin-right: 5px;
+}
+
+.formControl {
+  border: 2px solid #e3e6f0;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.roomCard {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.roomCardHover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: #cbd5e0;
+}
+
+.roomImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  height: 220px;
+  transition: transform 0.3s ease;
+}
+
+.roomName {
+  color: #2E86C1;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  line-height: 1.3;
+}
+
+.roomSleep {
+  color: #666;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.roomDescription {
+  color: #888;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.roomBeds {
+  color: #888;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.badgeAvailable {
+  background-color: #E8F5E8;
+  color: #2D7D32;
+  border: 1px solid #81C784;
+  padding: 0.4rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
+}
+
+.detailButton {
+  color: #2E86C1;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: transparent;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.detailButtonHover {
+  color: #3730a3;
+  background-color: rgba(79, 70, 229, 0.05);
+  text-decoration: underline;
+}
+
+.priceBox {
+  max-width: 400px;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  background: linear-gradient(135deg, #8BC34A 0%, #689F38 100%);
+  color: white;
+  padding: 0.75rem 0.5rem;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(139, 195, 74, 0.3);
+}
+
+.bookButton {
+  background: #1a71eacc;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(139, 195, 74, 0.3);
+}
+
+.bookButton:hover {
+  background: #1565c0;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(139, 195, 74, 0.4);
+}
+
+.bookButton:disabled {
+  background: #f44336;
+  color: white;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3);
+}
+
+.bookButton:disabled:hover {
+  background: #d32f2f;
+  transform: none;
+  box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3);
+}
+
+/* Thêm class riêng cho trạng thái hết phòng */
+.roomCardUnavailable {
+  opacity: 0.7;
+  filter: grayscale(0.3);
+}
+
+.roomCardUnavailable .badgeAvailable {
+  background-color: #ffebee;
+  color: #c62828;
+  border-color: #ef5350;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.roomCardUnavailable .priceBox {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
