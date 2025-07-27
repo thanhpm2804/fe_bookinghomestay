@@ -3,24 +3,51 @@ import axios from "axios";
 import Toolbar from "../components/Toolbar";
 import GuestSearchBar from "../components/GuestSearchBar";
 import Footer from "../components/Footer";
+import { fetchDistricts, fetchWards } from "../services/location";
 import styles from "./home/home.module.css";
 
 function Home() {
   const [homestays, setHomestays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [districts, setDistricts] = useState([]);
+  const [wards, setWards] = useState([]);
 
   useEffect(() => {
-    const fetchAllHomestays = async () => {
+    const fetchAllData = async () => {
       try {
         setLoading(true);
         setError(null);
         console.log("Đang gọi API...");
         
-        const response = await axios.get("https://localhost:7220/odata/Homestays?$expand=HomestayImages");
-        console.log("Response từ API:", response.data);
+        // Lấy danh sách homestay và location data song song
+        const [homestayResponse, districtsData] = await Promise.all([
+          axios.get("https://localhost:7220/odata/Homestays?$expand=HomestayImages"),
+          fetchDistricts()
+        ]);
         
-        setHomestays(response.data.value || []);
+        console.log("Response từ API:", homestayResponse.data);
+        console.log("Districts data:", districtsData);
+        
+        setHomestays(homestayResponse.data.value || []);
+        setDistricts(districtsData.value || districtsData || []);
+        
+        // Lấy tất cả wards cho tất cả districts
+        const allWards = [];
+        for (const district of districtsData.value || districtsData || []) {
+          try {
+            const wardsData = await fetchWards(district.DistrictId || district.id);
+            const districtWards = (wardsData.value || wardsData || []).map(ward => ({
+              ...ward,
+              districtId: district.DistrictId || district.id
+            }));
+            allWards.push(...districtWards);
+          } catch (error) {
+            console.error(`Lỗi khi lấy wards cho district ${district.DistrictId}:`, error);
+          }
+        }
+        setWards(allWards);
+        
       } catch (error) {
         console.error("Lỗi khi lấy toàn bộ homestay:", error);
         setError(error.message);
@@ -28,7 +55,7 @@ function Home() {
         setLoading(false);
       }
     };
-    fetchAllHomestays();
+    fetchAllData();
   }, []);
 
   const handleSearch = async ({ name, address, ward, district, checkIn, checkOut }) => {
@@ -40,8 +67,35 @@ function Home() {
       
       // Tạo params cho OData query
       const params = {};
-      if (name) params.$filter = `contains(Name, '${name}')`;
-      if (address) params.$filter = params.$filter ? `${params.$filter} and contains(StreetAddress, '${address}')` : `contains(StreetAddress, '${address}')`;
+      let filterConditions = [];
+      
+      if (name) {
+        filterConditions.push(`contains(Name, '${name}')`);
+      }
+      
+      if (address) {
+        filterConditions.push(`contains(StreetAddress, '${address}')`);
+      }
+      
+      if (district) {
+        // Tìm tất cả wards thuộc district này
+        const districtWards = wards.filter(w => w.districtId === district);
+        const wardIds = districtWards.map(w => w.WardId || w.id);
+        
+        if (wardIds.length > 0) {
+          const wardFilter = wardIds.map(id => `WardId eq ${id}`).join(' or ');
+          filterConditions.push(`(${wardFilter})`);
+        }
+      }
+      
+      if (ward) {
+        filterConditions.push(`WardId eq ${ward}`);
+      }
+      
+      // Kết hợp tất cả điều kiện
+      if (filterConditions.length > 0) {
+        params.$filter = filterConditions.join(' and ');
+      }
       
       console.log("OData params:", params);
       
@@ -65,6 +119,40 @@ function Home() {
       return sortedImages[0].ImageUrl;
     }
     return null;
+  };
+
+  // Hàm tạo địa chỉ hoàn chỉnh
+  const getFullAddress = (homestay) => {
+    const streetAddress = homestay.StreetAddress || '';
+    
+    // Tìm ward (phường/xã)
+    const ward = wards.find(w => w.WardId === homestay.WardId || w.id === homestay.WardId);
+    const wardName = ward ? (ward.Name || ward.name) : '';
+    
+    // Tìm district (quận/huyện) từ ward hoặc trực tiếp
+    let districtName = '';
+    if (ward && ward.districtId) {
+      const district = districts.find(d => d.DistrictId === ward.districtId || d.id === ward.districtId);
+      districtName = district ? (district.Name || district.name) : '';
+    }
+    
+    // Ghép địa chỉ hoàn chỉnh
+    const addressParts = [streetAddress, wardName, districtName].filter(part => part);
+    return addressParts.join(', ');
+  };
+
+  // Hàm hiển thị trạng thái hoạt động
+  const getStatusDisplay = (homestay) => {
+    // Kiểm tra trường Status từ API (boolean value)
+    const isActive = homestay.Status === true;
+    
+    return (
+      <div className={styles.statusSection}>
+        <span className={`${styles.statusBadge} ${isActive ? styles.statusActive : styles.statusInactive}`}>
+          {isActive ? 'Đang hoạt động' : 'Tạm ngưng'}
+        </span>
+      </div>
+    );
   };
 
   return (
@@ -92,13 +180,10 @@ function Home() {
                   </div>
                   <div className={styles.cardContent}>
                     <h3>{homestay.Name}</h3>
-                    <p className={styles.location}>{homestay.StreetAddress}</p>
+                    <p className={styles.location}>{getFullAddress(homestay)}</p>
                     <p className={styles.rules}>{homestay.Description}</p>
                     <div className={styles.priceSection}>
-                      <span className={styles.price}>
-                        {homestay.Price ? `${homestay.Price} VND` : "Liên hệ"}
-                      </span>
-                      <span>/đêm</span>
+                      {getStatusDisplay(homestay)}
                       <button className={styles.bookButton}>Đặt ngay</button>
                     </div>
                   </div>
