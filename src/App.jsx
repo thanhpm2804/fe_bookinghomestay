@@ -17,6 +17,7 @@ import HomestayUpdate from "./pages/owner/HomestayUpdate";
 import Revenue from "./pages/owner/Revenue";
 import BookingList from "./pages/owner/BookingList";
 import OwnerWelcome from "./pages/owner/OwnerWelcome";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
           <Route path="revenue" element={<Revenue />} />
           <Route path="bookings" element={<BookingList />} />
         </Route>
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </AuthProvider>
   )

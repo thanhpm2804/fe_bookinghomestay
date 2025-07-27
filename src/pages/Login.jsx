@@ -58,7 +58,11 @@ function Login() {
       // Sử dụng AuthContext để lưu thông tin đăng nhập
       login(data.user || { email }, data.token);
       setIsLoading(false);
-      navigate('/home');
+      if (data.role === 'Admin') {
+        navigate('/admin');
+      } else {
+        navigate('/home');
+      }
     } catch (err) {
       setError('Lỗi kết nối server!\\nCó thể do CORS hoặc chứng chỉ HTTPS tự ký. Hãy chắc chắn backend cho phép truy cập từ FE và trình duyệt đã chấp nhận chứng chỉ.');
       setIsLoading(false);
