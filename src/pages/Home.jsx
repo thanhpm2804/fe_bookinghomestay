@@ -17,7 +17,7 @@ function Home() {
         setError(null);
         console.log("Đang gọi API...");
         
-        const response = await axios.get("https://localhost:7220/odata/Homestays");
+        const response = await axios.get("https://localhost:7220/odata/Homestays?$expand=HomestayImages");
         console.log("Response từ API:", response.data);
         
         setHomestays(response.data.value || []);
@@ -45,7 +45,7 @@ function Home() {
       
       console.log("OData params:", params);
       
-      const response = await axios.get("https://localhost:7220/odata/Homestays", { params });
+      const response = await axios.get("https://localhost:7220/odata/Homestays?$expand=HomestayImages", { params });
       console.log("Kết quả tìm kiếm:", response.data);
       
       setHomestays(response.data.value || []);
@@ -55,6 +55,16 @@ function Home() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Hàm lấy ảnh đầu tiên từ HomestayImages array
+  const getFirstImage = (homestay) => {
+    if (homestay.HomestayImages && homestay.HomestayImages.length > 0) {
+      // Sắp xếp theo SortOrder và lấy ảnh đầu tiên
+      const sortedImages = homestay.HomestayImages.sort((a, b) => a.SortOrder - b.SortOrder);
+      return sortedImages[0].ImageUrl;
+    }
+    return null;
   };
 
   return (
@@ -73,8 +83,11 @@ function Home() {
                 <div key={homestay.HomestayId || index} className={styles.homestayCard}>
                   <div className={styles.cardImage}>
                     <img 
-                      src={homestay.Image || "https://via.placeholder.com/400x200?text=No+Image"} 
-                      alt={homestay.Name} 
+                      src={getFirstImage(homestay) || "/placeholder-image.svg"} 
+                      alt={homestay.Name || "Homestay"}
+                      onError={(e) => {
+                        e.target.src = "/placeholder-image.svg";
+                      }}
                     />
                   </div>
                   <div className={styles.cardContent}>
