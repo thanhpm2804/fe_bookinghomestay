@@ -22,6 +22,16 @@ import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
+
+// Hàm parse JWT token
+const parseJwt = (token) => {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    return null;
+  }
+};
+
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +40,7 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [accountType, setAccountType] = useState('customer'); // Thêm lựa chọn loại tài khoản
+
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -40,11 +50,16 @@ function Login() {
     setIsLoading(true);
 
     try {
+
       const res = await fetch(`${BASE_URL}/Account/login`, {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
+      
+      console.log('Response status:', res.status);
+      console.log('Response headers:', res.headers);
       let data = {};
       try {
         data = await res.json();
@@ -59,7 +74,21 @@ function Login() {
       // Sử dụng AuthContext để lưu thông tin đăng nhập
       login(data.user || { email }, data.token);
       setIsLoading(false);
-      navigate('/home');
+      
+      // Parse JWT token để lấy role
+      const decoded = parseJwt(data.token);
+      const role = decoded && (decoded.role || (decoded.roles && decoded.roles[0]));
+      
+      console.log('Parsed JWT role:', role);
+      console.log('Full decoded JWT:', decoded);
+      
+      if (role === 'Admin') {
+        navigate('/admin');
+      } else if (role === 'Owner') {
+        navigate('/owner/rooms');
+      } else {
+        navigate('/home');
+      }
     } catch (err) {
       setError('Lỗi kết nối server!\\nCó thể do CORS hoặc chứng chỉ HTTPS tự ký. Hãy chắc chắn backend cho phép truy cập từ FE và trình duyệt đã chấp nhận chứng chỉ.');
       setIsLoading(false);
@@ -87,16 +116,21 @@ function Login() {
       if (response.ok) {
         const data = await response.json();
         console.log('Google login success, data:', data);
-        localStorage.setItem('token', data.token);
+        
+        // Sử dụng AuthContext để lưu thông tin đăng nhập
+        login(data.user || { email: data.email }, data.token);
         
         // Parse JWT để lấy role
         const decoded = parseJwt(data.token);
         const role = decoded && (decoded.role || (decoded.roles && decoded.roles[0]));
         
+        console.log('Google login - Parsed JWT role:', role);
+        console.log('Google login - Full decoded JWT:', decoded);
+        
         if (role === 'Admin') {
           navigate('/admin');
-        } else if (role === 'Manager') {
-          navigate('/manager');
+        } else if (role === 'Owner') {
+          navigate('/owner/rooms');
         } else {
           navigate('/home');
         }
@@ -153,18 +187,23 @@ function Login() {
       if (response.ok) {
         const data = await response.json();
         console.log('Auto-registration success:', data);
-        localStorage.setItem('token', data.token);
+        
+        // Sử dụng AuthContext để lưu thông tin đăng nhập
+        login(data.user || { email: data.email }, data.token);
         
         // Parse JWT để lấy role
         const decoded = parseJwt(data.token);
         const role = decoded && (decoded.role || (decoded.roles && decoded.roles[0]));
         
+        console.log('Auto-registration - Parsed JWT role:', role);
+        console.log('Auto-registration - Full decoded JWT:', decoded);
+        
         setMessage('Đăng ký thành công! Chào mừng bạn đến với hệ thống.');
         
         if (role === 'Admin') {
           navigate('/admin');
-        } else if (role === 'Manager') {
-          navigate('/manager');
+        } else if (role === 'Owner') {
+          navigate('/owner/rooms');
         } else {
           navigate('/home');
         }
@@ -249,22 +288,7 @@ function Login() {
           <Typography variant="h6" color="text.secondary" fontWeight={500}>
             Chào mừng bạn quay trở lại!
           </Typography>
-          <Stack direction="row" spacing={2} mt={1}>
-            <Button
-              variant={accountType === 'customer' ? 'contained' : 'outlined'}
-              onClick={() => setAccountType('customer')}
-              sx={{ fontWeight: 600 }}
-            >
-              Customer
-            </Button>
-            <Button
-              variant={accountType === 'owner' ? 'contained' : 'outlined'}
-              onClick={() => setAccountType('owner')}
-              sx={{ fontWeight: 600 }}
-            >
-              Owner
-            </Button>
-          </Stack>
+          
         </Stack>
         {error && (
           <Alert
@@ -414,9 +438,20 @@ function Login() {
               })
               .then(res => res.json())
               .then(data => {
-                // Lưu JWT, chuyển hướng, v.v.
+                // Lưu JWT
                 localStorage.setItem('token', data.token);
-                window.location.href = '/home';
+                
+                // Parse JWT để lấy role và chuyển hướng đúng
+                const decoded = parseJwt(data.token);
+                const role = decoded && (decoded.role || (decoded.roles && decoded.roles[0]));
+                
+                if (role === 'Admin') {
+                  window.location.href = '/admin';
+                } else if (role === 'Owner') {
+                  window.location.href = '/owner';
+                } else {
+                  window.location.href = '/home';
+                }
               })
               .catch(() => alert('Google login failed!'));
             }}
@@ -434,11 +469,11 @@ function Login() {
           spacing={1}
         >
           <Link
-            href={accountType === 'customer' ? "/register" : "/register-owner"}
+            href="/register"
             underline="hover"
             sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, fontWeight: 500 }}
           >
-            Đăng ký {accountType === 'customer' ? 'Customer' : 'Owner'}
+            Đăng ký Customer
           </Link>
           <Link
             href="/forgot-password"
