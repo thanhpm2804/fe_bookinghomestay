@@ -27,15 +27,37 @@
   height: 32px;
 }
 
+.logo-image.large-logo {
+  width: 96px;
+  height: 96px;
+}
+
 .logo-text {
   font-size: 1.5rem;
   font-weight: 600;
   color: #007bff;
 }
 
+.logo-title {
+  font-family: 'Pacifico', 'Segoe Script', 'Brush Script MT', cursive, sans-serif;
+  font-size: 2.2rem;
+  font-weight: bold;
+  margin-left: 18px;
+  background: linear-gradient(90deg, #4F8DFD 30%, #6FE7DD 70%, #FFD166 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 8px rgba(79, 141, 253, 0.08);
+  display: inline-block;
+  vertical-align: middle;
+}
+
 /* Account dropdown styles */
 .toolbar-account {
   position: relative;
+  z-index: 20;
 }
 
 .account-icon {
@@ -60,15 +82,19 @@
 /* Dropdown menu */
 .dropdown-menu {
   position: absolute;
-  top: 100%;
   right: 0;
-  margin-top: 8px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  min-width: 200px;
-  z-index: 1000;
-  animation: fadeInDown 0.3s ease;
+  top: 100%;
+  margin-top: 12px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(79, 141, 253, 0.18), 0 1.5px 8px rgba(0,0,0,0.08);
+  min-width: 240px;
+  z-index: 9999 !important;
+  display: block !important;
+  animation: fadeInDown 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+  border: 1.5px solid #e3eafc;
+  padding: 10px 0;
+  overflow: hidden;
 }
 
 @keyframes fadeInDown {
@@ -85,12 +111,17 @@
 .dropdown-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 16px;
+  padding: 16px 28px 16px 22px;
   color: #495057;
   cursor: pointer;
-  transition: all 0.2s ease;
+  font-size: 1.08rem;
+  font-weight: 500;
+  background: none;
+  border: none;
+  outline: none;
   border-bottom: 1px solid #f1f3f4;
+  transition: background 0.18s, color 0.18s, padding-left 0.18s;
 }
 
 .dropdown-item:last-child {
@@ -98,12 +129,19 @@
 }
 
 .dropdown-item:hover {
-  background: #f8f9fa;
-  color: #007bff;
+  background: linear-gradient(90deg, #e3f0ff 0%, #f6fafd 100%);
+  color: #4F8DFD;
+  padding-left: 32px;
 }
 
 .dropdown-item svg {
   flex-shrink: 0;
+  color: #4F8DFD;
+  transition: color 0.18s;
+}
+
+.dropdown-item:hover svg {
+  color: #1976d2;
 }
 
 /* Responsive design */
