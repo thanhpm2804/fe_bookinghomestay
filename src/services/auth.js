@@ -22,6 +22,7 @@ export async function login(email, password) {
     localStorage.setItem("expiration", data.expiration);
     localStorage.setItem("email", decoded.email);
     localStorage.setItem("unique_name", decoded.unique_name); // hoặc nameid nếu bạn cần ID
+    console.log(data.token);
   }
 
   return data;

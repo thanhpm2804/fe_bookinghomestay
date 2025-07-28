@@ -1,4 +1,4 @@
-
+import{API_BASE_URL} from '../configs/apiConfig';
 import { Typography, Box, Container, Paper, Grid, Card, CardContent } from '@mui/material';
 import Navigation from '../components/Navigation';
 import React, { useEffect, useState } from "react";
@@ -25,7 +25,7 @@ function Home() {
         
         // Lấy danh sách homestay và location data song song
         const [homestayResponse, districtsData] = await Promise.all([
-          axios.get("https://localhost:7220/odata/Homestays?$expand=HomestayImages"),
+          axios.get(`${API_BASE_URL}odata/Homestays?$expand=HomestayImages`),
           fetchDistricts()
         ]);
         
@@ -73,7 +73,8 @@ function Home() {
       let filterConditions = [];
       
       if (name) {
-        filterConditions.push(`contains(Name, '${name}')`);
+        const lowerName = name.toLowerCase();
+        filterConditions.push(`contains(tolower(Name), '${lowerName}')`);
       }
       
       if (address) {
@@ -102,7 +103,7 @@ function Home() {
       
       console.log("OData params:", params);
       
-      const response = await axios.get("https://localhost:7220/odata/Homestays?$expand=HomestayImages", { params });
+      const response = await axios.get(`${API_BASE_URL}odata/Homestays?$expand=HomestayImages`, { params });
       console.log("Kết quả tìm kiếm:", response.data);
       
       setHomestays(response.data.value || []);

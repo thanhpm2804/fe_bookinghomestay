@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import HomestayDetailPage from "./pages/homestays/HomestayDetailPage";
 import ConfirmBookingPage from "./pages/bookings/ConfirmBookingPage";
 import Profile from "./pages/Profile";
+import Unauthorized from "./pages/Unauthorized";
 
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import RoomManagement from "./pages/owner/RoomManagement";
@@ -38,7 +39,9 @@ function App() {
         <Route path="/homestay-detail" element={<HomestayDetailPage />} />
         <Route path="/confirm-booking" element={<ConfirmBookingPage />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+        
+        {/* Owner Routes */}
         <Route
           path="/owner"
           element={
@@ -46,15 +49,20 @@ function App() {
               <OwnerDashboard />
             </RequireRole>
           }
-          >
-            <Route index element={<RoomManagement />} />
-            <Route path="rooms" element={<RoomManagement />} />
-            <Route path="homestay" element={<HomestayUpdate />} />
-            <Route path="revenue" element={<Revenue />} />
-            <Route path="bookings" element={<BookingList />} />
-            <Route path="grid-test" element={<GridTest />} />
+        >
+          <Route index element={<RoomManagement />} />
+          <Route path="rooms" element={<RoomManagement />} />
+          <Route path="homestay" element={<HomestayUpdate />} />
+          <Route path="revenue" element={<Revenue />} />
+          <Route path="bookings" element={<BookingList />} />
+          <Route path="grid-test" element={<GridTest />} />
         </Route>
+        
+        {/* Admin Routes */}
         <Route path="/admin" element={<AdminDashboard />} />
+        
+        {/* Catch all - redirect to login only if not authenticated */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </AuthProvider>
   )
