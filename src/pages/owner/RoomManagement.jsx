@@ -528,12 +528,8 @@ const isValidPrice = (price) =>
 
 // Bed handlers
 const handleAddBed = () => {
-  const lastBed = form.roomBeds.at(-1);
-  if (lastBed && !isValidBed(lastBed)) {
-    setNotification({ show: true, message: 'Vui lòng nhập đầy đủ thông tin giường', type: 'error' });
-    
-    return;
-  }
+  // const lastBed = form.roomBeds.at(-1);
+  
   setForm({
     ...form,
     roomBeds: [...form.roomBeds, { bedTypeId: '', quantity: '' }],

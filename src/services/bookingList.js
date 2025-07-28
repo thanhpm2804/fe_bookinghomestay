@@ -1,12 +1,13 @@
 
 import { BASE_URL } from './auth';
+
 export const bookingListService = {
   // Fetch all bookings with expand
   async getBookings() {
     try {
       const token = localStorage.getItem("token");
   
-      const response = await fetch(`${BASE_URL.replace('/api', '')}/odata/bookings?$expand=bookingDetails,Customer`, {
+      const response = await fetch(`${BASE_URL.replace('/api', '')}/odata/bookings?$expand=bookingDetails($expand=Room),Customer`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -17,6 +18,7 @@ export const bookingListService = {
       }
   
       const data = await response.json();
+      console.log('Bookings data:', data); // Debug log
       return data.value || [];
     } catch (error) {
       console.error('Error fetching bookings:', error);
@@ -27,9 +29,15 @@ export const bookingListService = {
   // Fetch bookings with pagination
   async getBookingsWithPagination(page = 1, pageSize = 10) {
     try {
+      const token = localStorage.getItem("token");
       const skip = (page - 1) * pageSize;
       const response = await fetch(
-        `${BASE_URL.replace('/api', '')}/odata/bookings?$expand=bookingDetails,Customer&$skip=${skip}&$top=${pageSize}`
+        `${BASE_URL.replace('/api', '')}/odata/bookings?$expand=bookingDetails($expand=Room),Customer&$skip=${skip}&$top=${pageSize}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        }
       );
       
       if (!response.ok) {
@@ -45,22 +53,49 @@ export const bookingListService = {
       console.error('Error fetching bookings with pagination:', error);
       throw error;
     }
+  },
+
+  // Update booking status
+  async updateBookingStatus(bookingId, status) {
+    try {
+      const token = localStorage.getItem("token");
+      
+      const response = await fetch(`${BASE_URL}/Booking/${bookingId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(status)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Cập nhật trạng thái thất bại: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      throw error;
+    }
   }
 };
 
-// Booking Status constants
+// Booking Status constants - Cập nhật theo enum từ server
 export const BookingStatus = {
-  Pending: 0,
-  Confirmed: 1,
-  Cancelled: 2,
-  Completed: 3
+  Pending: 0,      // Đang chờ xác nhận
+  Confirmed: 1,    // Đã xác nhận
+  Cancelled: 2,    // Đã hủy
+  Completed: 3     // Đã hoàn thành (sau khi checkout)
 };
 
 export const BookingStatusLabels = {
-  [BookingStatus.Pending]: 'Đang chờ xác nhận',
-  [BookingStatus.Confirmed]: 'Đã xác nhận',
-  [BookingStatus.Cancelled]: 'Đã hủy',
-  [BookingStatus.Completed]: 'Đã hoàn thành'
+  [BookingStatus.Pending]: 'Pending',
+  [BookingStatus.Confirmed]: 'Confirmed', 
+  [BookingStatus.Cancelled]: 'Cancelled',
+  [BookingStatus.Completed]: 'Completed'
 };
 
 export const BookingStatusColors = {
@@ -68,6 +103,27 @@ export const BookingStatusColors = {
   [BookingStatus.Confirmed]: 'success',
   [BookingStatus.Cancelled]: 'error',
   [BookingStatus.Completed]: 'info'
+};
+
+// Helper function để convert status từ server sang label
+export const getStatusLabel = (statusFromServer) => {
+  // Nếu status từ server là string (enum name)
+  if (typeof statusFromServer === 'string') {
+    return statusFromServer;
+  }
+  
+  // Nếu status từ server là number
+  if (typeof statusFromServer === 'number') {
+    return BookingStatusLabels[statusFromServer] || 'Unknown';
+  }
+  
+  return 'Unknown';
+};
+
+// Helper function để convert status label sang number cho API
+export const getStatusNumber = (statusLabel) => {
+  const statusEntry = Object.entries(BookingStatusLabels).find(([, label]) => label === statusLabel);
+  return statusEntry ? parseInt(statusEntry[0]) : BookingStatus.Pending;
 };
 
 // Filter utilities
