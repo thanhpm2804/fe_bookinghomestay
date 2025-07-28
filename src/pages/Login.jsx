@@ -74,6 +74,7 @@ function Login() {
       // Sử dụng AuthContext để lưu thông tin đăng nhập
       login(data.user || { email }, data.token);
       setIsLoading(false);
+
       
       // Parse JWT token để lấy role
       const decoded = parseJwt(data.token);
@@ -86,6 +87,7 @@ function Login() {
         navigate('/admin');
       } else if (role === 'Owner') {
         navigate('/owner/rooms');
+
       } else {
         navigate('/home');
       }

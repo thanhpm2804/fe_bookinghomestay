@@ -17,8 +17,12 @@ import HomestayUpdate from "./pages/owner/HomestayUpdate";
 import Revenue from "./pages/owner/Revenue";
 import BookingList from "./pages/owner/BookingList";
 import OwnerWelcome from "./pages/owner/OwnerWelcome";
+
 import GridTest from "./pages/owner/GridTest";
 import RequireRole from "./components/RequireRole";
+
+import AdminDashboard from "./pages/admin/AdminDashboard";
+
 
 function App() {
   return (
@@ -50,6 +54,7 @@ function App() {
             <Route path="bookings" element={<BookingList />} />
             <Route path="grid-test" element={<GridTest />} />
         </Route>
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </AuthProvider>
   )
