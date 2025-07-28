@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import styles from './RoomsCreationStep.module.css';
+import { getBedRooms } from "../../../services/locationService";
 
-const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }) => {
+const RoomsCreationStep = ({
+  data = [],
+  onChange,
+  onNext,
+  onPrev,
+  onSubmit,
+  loading
+}) => {
   const [formData, setFormData] = useState({
-    rooms: []
+    rooms: Array.isArray(data) ? data : []
   });
   const [errors, setErrors] = useState({});
-  
-  const [bedTypes] = useState([
-    { id: 1, name: 'Single Bed' },
-    { id: 2, name: 'Double Bed' },
-    { id: 3, name: 'Queen Bed' },
-    { id: 4, name: 'King Bed' },
-    { id: 5, name: 'Bunk Bed' },
-    { id: 6, name: 'Sofa Bed' }
-  ]);
+  const [bedTypes, setBedTypes] = useState([]);
 
   const [amenities] = useState([
     { id: 1, name: 'WiFi' },
@@ -32,40 +32,52 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
   ]);
 
   useEffect(() => {
-    if (data) {
-      setFormData({
-        rooms: data.rooms || []
-      });
-    }
+    setFormData(prev => ({
+      ...prev,
+      rooms: Array.isArray(data) ? data : []
+    }));
   }, [data]);
+
+  useEffect(() => {
+    getBedRooms().then(res => {
+      if (res.value) {
+        setBedTypes(
+          res.value.map(bed => ({
+            bedTypeId: bed.BedTypeId,
+            name: bed.Name
+          }))
+        );
+      }
+    });
+  }, []);
 
   const validateRoom = (room) => {
     const errors = {};
-    
+
     if (!room.name || room.name.trim().length === 0) {
       errors.name = 'Tên phòng không được để trống';
     }
-    
+
     if (!room.capacity || room.capacity < 1 || room.capacity > 10) {
       errors.capacity = 'Sức chứa phải từ 1-10 người';
     }
-    
+
     if (!room.price || room.price <= 0) {
       errors.price = 'Giá phòng phải lớn hơn 0';
     }
-    
+
     if (!room.size || room.size <= 0) {
       errors.size = 'Diện tích phải lớn hơn 0';
     }
-    
+
     if (!room.roomBeds || room.roomBeds.length === 0) {
       errors.roomBeds = 'Vui lòng chọn ít nhất một loại giường';
     }
-    
-    if (!room.imgUrl) {
+
+    if (!room.imgFile) {
       errors.imgUrl = 'Vui lòng tải lên ảnh phòng';
     }
-    
+
     return errors;
   };
 
@@ -74,7 +86,7 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
       setErrors({ rooms: 'Vui lòng tạo ít nhất một phòng' });
       return false;
     }
-    
+
     const newErrors = {};
     formData.rooms.forEach((room, index) => {
       const roomErrors = validateRoom(room);
@@ -82,7 +94,7 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
         newErrors[`room_${index}`] = roomErrors;
       }
     });
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -97,9 +109,10 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
       amenities: [],
       roomBeds: [],
       imgUrl: '',
+      imgFile: null,
       imgPreview: null
     };
-    
+
     setFormData(prev => ({
       ...prev,
       rooms: [...(prev.rooms || []), newRoom]
@@ -116,7 +129,7 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
   const updateRoom = (roomIndex, field, value) => {
     setFormData(prev => ({
       ...prev,
-      rooms: (prev.rooms || []).map((room, index) => 
+      rooms: (prev.rooms || []).map((room, index) =>
         index === roomIndex ? { ...room, [field]: value } : room
       )
     }));
@@ -125,12 +138,10 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
   const handleRoomImageUpload = (roomIndex, event) => {
     const file = event.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         return;
       }
-      
-      // Validate file size (max 5MB)
+
       if (file.size > 5 * 1024 * 1024) {
         return;
       }
@@ -139,6 +150,7 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
       reader.onload = (e) => {
         updateRoom(roomIndex, 'imgPreview', e.target.result);
         updateRoom(roomIndex, 'imgUrl', file.name);
+        updateRoom(roomIndex, 'imgFile', file);
       };
       reader.readAsDataURL(file);
     }
@@ -164,34 +176,14 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
     }));
   };
 
-  const handleBedTypeChange = (roomIndex, bedTypeId, checked) => {
-    setFormData(prev => ({
-      ...prev,
-      rooms: (prev.rooms || []).map((room, index) => {
-        if (index === roomIndex) {
-          let updatedBeds = [...(room.roomBeds || [])];
-          if (checked) {
-            if (!updatedBeds.includes(bedTypeId)) {
-              updatedBeds.push(bedTypeId);
-            }
-          } else {
-            updatedBeds = updatedBeds.filter(id => id !== bedTypeId);
-          }
-          return { ...room, roomBeds: updatedBeds };
-        }
-        return room;
-      })
-    }));
-  };
-
   const updateBedQuantity = (roomIndex, bedTypeId, quantity) => {
     setFormData(prev => ({
       ...prev,
-      rooms: (prev.rooms || []).map((room, index) => {
+      rooms: (Array.isArray(prev.rooms) ? prev.rooms : []).map((room, index) => {
         if (index === roomIndex) {
           const updatedBeds = [...(room.roomBeds || [])];
           const existingBedIndex = updatedBeds.findIndex(bed => bed.bedTypeId === bedTypeId);
-          
+
           if (existingBedIndex !== -1) {
             if (quantity > 0) {
               updatedBeds[existingBedIndex] = { ...updatedBeds[existingBedIndex], quantity };
@@ -201,7 +193,7 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
           } else if (quantity > 0) {
             updatedBeds.push({ bedTypeId, quantity });
           }
-          
+
           return { ...room, roomBeds: updatedBeds };
         }
         return room;
@@ -211,19 +203,49 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
 
   const handleNext = () => {
     if (validateForm()) {
-      onChange(formData);
+      onChange({ rooms: formData.rooms });
       onNext();
     }
   };
 
   const handleSubmit = () => {
     if (validateForm()) {
-      onChange(formData);
-      onSubmit();
+      console.log('Rooms data before submit:', formData.rooms);
+      
+      // First update the parent component with the latest room data
+      onChange({ rooms: formData.rooms });
+      
+      // Then prepare FormData for submission
+      const submitData = new FormData();
+      
+      // Stringify the room data and add to FormData
+      submitData.append('homestayData', JSON.stringify({ 
+        rooms: formData.rooms.map(room => ({
+          id: room.id,
+          name: room.name,
+          capacity: room.capacity,
+          price: room.price,
+          size: room.size,
+          amenities: room.amenities,
+          roomBeds: room.roomBeds,
+          imgUrl: room.imgUrl
+          // Note: We don't include imgFile or imgPreview in the JSON
+        }))
+      }));
+      
+      // Add image files
+      formData.rooms.forEach((room, index) => {
+        if (room.imgFile) {
+          submitData.append(`roomImages[${index}]`, room.imgFile);
+        }
+      });
+      
+      console.log('Submitting FormData:', submitData);
+      onSubmit(submitData);
     }
   };
 
-  const rooms = formData.rooms || [];
+  const rooms = Array.isArray(formData.rooms) ? formData.rooms : [];
 
   return (
     <div className={styles.roomsCreationContainer}>
@@ -238,7 +260,6 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
       </div>
 
       <div className={styles.roomsForm}>
-        {/* Add Room Button */}
         <div className={styles.addRoomSection}>
           <button
             type="button"
@@ -256,9 +277,8 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
           </div>
         )}
 
-        {/* Rooms List */}
         {rooms.map((room, roomIndex) => (
-          <div key={room.id} className={styles.roomCard}>
+          <div key={room.id || roomIndex} className={styles.roomCard}>
             <div className={styles.roomHeader}>
               <h5 className={styles.roomTitle}>
                 Phòng {roomIndex + 1}
@@ -273,7 +293,6 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
             </div>
 
             <div className="row g-3">
-              {/* Basic Information */}
               <div className="col-md-6">
                 <label className="form-label">
                   Tên phòng <span className="text-danger">*</span>
@@ -341,7 +360,6 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
                 )}
               </div>
 
-              {/* Room Image */}
               <div className="col-12">
                 <label className="form-label">
                   Ảnh phòng <span className="text-danger">*</span>
@@ -355,7 +373,7 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
                     style={{ display: 'none' }}
                     id={`room-image-${roomIndex}`}
                   />
-                  
+
                   <div className={styles.uploadArea}>
                     {room.imgPreview ? (
                       <div className={styles.imagePreview}>
@@ -366,6 +384,7 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
                           onClick={() => {
                             updateRoom(roomIndex, 'imgPreview', null);
                             updateRoom(roomIndex, 'imgUrl', '');
+                            updateRoom(roomIndex, 'imgFile', null);
                           }}
                         >
                           <i className="bi bi-x-circle"></i>
@@ -385,39 +404,34 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
                 </div>
               </div>
 
-              {/* Bed Types with Quantity */}
               <div className="col-12">
                 <label className="form-label">
                   Loại giường <span className="text-danger">*</span>
                 </label>
                 <div className={styles.bedTypesContainer}>
-                  {bedTypes.map(bedType => {
-                    const selectedBed = (room.roomBeds || []).find(bed => bed.bedTypeId === bedType.id);
-                    const quantity = selectedBed ? selectedBed.quantity : 0;
-                    
+                  {bedTypes.map(bed => {
+                    const bedInfo = formData.rooms[roomIndex].roomBeds.find(b => b.bedTypeId === bed.bedTypeId);
+                    const quantity = bedInfo ? bedInfo.quantity : 0;
+
                     return (
-                      <div key={bedType.id} className={styles.bedTypeItem}>
+                      <div key={bed.bedTypeId}>
                         <div className={styles.bedTypeHeader}>
                           <div className="form-check">
                             <input
                               className="form-check-input"
                               type="checkbox"
-                              id={`bed-${roomIndex}-${bedType.id}`}
+                              id={`bed-${roomIndex}-${bed.bedTypeId}`}
                               checked={quantity > 0}
                               onChange={(e) => {
-                                if (e.target.checked) {
-                                  updateBedQuantity(roomIndex, bedType.id, 1);
-                                } else {
-                                  updateBedQuantity(roomIndex, bedType.id, 0);
-                                }
+                                updateBedQuantity(roomIndex, bed.bedTypeId, e.target.checked ? 1 : 0);
                               }}
                             />
-                            <label className="form-check-label" htmlFor={`bed-${roomIndex}-${bedType.id}`}>
-                              {bedType.name}
+                            <label className="form-check-label" htmlFor={`bed-${roomIndex}-${bed.bedTypeId}`}>
+                              {bed.name}
                             </label>
                           </div>
                         </div>
-                        
+
                         {quantity > 0 && (
                           <div className={styles.bedQuantity}>
                             <label className="form-label">Số lượng:</label>
@@ -425,7 +439,7 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
                               type="number"
                               className="form-control form-control-sm"
                               value={quantity}
-                              onChange={(e) => updateBedQuantity(roomIndex, bedType.id, parseInt(e.target.value))}
+                              onChange={(e) => updateBedQuantity(roomIndex, bed.bedTypeId, parseInt(e.target.value))}
                               min="1"
                               max="10"
                               style={{ width: '80px' }}
@@ -441,7 +455,6 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
                 )}
               </div>
 
-              {/* Amenities */}
               <div className="col-12">
                 <label className="form-label">
                   Tiện nghi phòng
@@ -470,7 +483,6 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
         ))}
       </div>
 
-      {/* Navigation Buttons */}
       <div className={styles.formActions}>
         <button
           type="button"
@@ -481,7 +493,7 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
           <i className="bi bi-arrow-left me-1"></i>
           Quay lại
         </button>
-        
+
         {rooms.length > 0 ? (
           <button
             type="button"
@@ -525,4 +537,4 @@ const RoomsCreationStep = ({ data, onChange, onNext, onPrev, onSubmit, loading }
   );
 };
 
-export default RoomsCreationStep; 
+export default RoomsCreationStep;

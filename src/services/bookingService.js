@@ -1,7 +1,7 @@
 import { API_BASE_URL } from "../configs/apiConfig";
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YjEzYzBkNC01NDMyLTQyZGYtOWI3Ni04YTE2M2QxMDRjNDIiLCJlbWFpbCI6Im1pbmhuZ3V5ZW5AZXhhbXBsZS5jb20iLCJuYW1laWQiOiI4YjEzYzBkNC01NDMyLTQyZGYtOWI3Ni04YTE2M2QxMDRjNDIiLCJ1bmlxdWVfbmFtZSI6Im1pbmhuZ3V5ZW5AZXhhbXBsZS5jb20iLCJyb2xlIjoiQ3VzdG9tZXIiLCJuYmYiOjE3NTM2ODA5ODksImV4cCI6MTc1MzY5MTc4OSwiaWF0IjoxNzUzNjgwOTg5LCJpc3MiOiJIb21lc3RheUFQSSIsImF1ZCI6IkhvbWVzdGF5Q2xpZW50In0.HwHGW1jQJMKAN3pmdgaOwIlbNoGLS4gy-1fboIUoJ7E"
 export const getUserInfor = async () => {
     try {
+        const token = localStorage.getItem('token');
         const url = `${API_BASE_URL}api/Account/get-user-info/`;
 
         const response = await fetch(url, {
@@ -26,6 +26,9 @@ export const getUserInfor = async () => {
     }
 };
 export const createBooking = async (homestayId, checkIn, checkOut, roomIds) => {
+    const token = localStorage.getItem('token');
+    if (!token) return { error: "Bạn chưa đăng nhập." };
+    if(token == null) return { }
     try {
         const url = `${API_BASE_URL}api/Booking`;
         const bookingData = {

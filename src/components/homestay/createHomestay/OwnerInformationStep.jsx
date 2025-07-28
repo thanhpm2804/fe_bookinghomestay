@@ -92,6 +92,12 @@ const OwnerInformationStep = ({ data, onChange, onNext, loading }) => {
         }));
         return;
       }
+      setFormData(prev => ({
+          ...prev,
+          imageFile: file,
+          avatarUrl: file.name,
+          avatarPreview: e.target.result
+        }));
 
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -230,10 +236,10 @@ const OwnerInformationStep = ({ data, onChange, onNext, loading }) => {
               value={formData.gender}
               onChange={handleInputChange}
             >
-              <option value="">Chọn giới tính</option>
-              <option value="Male">Nam</option>
-              <option value="Female">Nữ</option>
-              <option value="Other">Khác</option>
+              <option value="0">Chọn giới tính</option>
+              <option value="1">Nam</option>
+              <option value="2">Nữ</option>
+              <option value="3">Khác</option>
             </select>
             {errors.gender && (
               <div className="invalid-feedback">{errors.gender}</div>

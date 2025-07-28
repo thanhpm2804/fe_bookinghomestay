@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-lea
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import styles from './DetailedInformationStep.module.css';
+import { getHomestayAmenities, getNeighbourhoods, getPolicies } from "../../../services/locationService"; // hoặc amenityService
 
 // Fix Leaflet marker icons for Vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -46,10 +47,10 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
     detailedDescription: '',
     latitude: '',
     longitude: '',
-    policies: [],
+    policies: [], // [{ policyId, isAllow }]
     rules: '',
-    amenities: [],
-    neighbourhoods: [],
+    amenityIds: [], // lưu danh sách id tiện ích đã chọn
+    neighbourhoodIds: [],
     mainImages: [] // Thêm field cho ảnh homestay
   });
   const [errors, setErrors] = useState({});
@@ -58,57 +59,19 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [mapCenter, setMapCenter] = useState([16.0475, 108.2062]); // Đà Nẵng
-
-  // Data mẫu cho policies và amenities
-  const [availablePolicies] = useState([
-    { id: 1, name: 'Pets allowed', label: 'Cho phép thú cưng', isAllowed: false },
-    { id: 2, name: 'Smoking allowed', label: 'Cho phép hút thuốc', isAllowed: false },
-    { id: 3, name: 'Parties allowed', label: 'Cho phép tiệc tùng', isAllowed: false },
-    { id: 4, name: 'Children allowed', label: 'Cho phép trẻ em', isAllowed: false },
-    { id: 5, name: 'Events allowed', label: 'Cho phép sự kiện', isAllowed: false }
-  ]);
-
-  const [availableAmenities] = useState([
-    { id: 1, name: 'WiFi' },
-    { id: 2, name: 'Air Conditioning' },
-    { id: 3, name: 'Kitchen' },
-    { id: 4, name: 'Washing Machine' },
-    { id: 5, name: 'Free Parking' },
-    { id: 6, name: 'Swimming Pool' },
-    { id: 7, name: 'Garden' },
-    { id: 8, name: 'Balcony' },
-    { id: 9, name: 'Terrace' },
-    { id: 10, name: 'BBQ Facilities' },
-    { id: 11, name: 'Bicycle Rental' },
-    { id: 12, name: 'Airport Shuttle' }
-  ]);
-
-  const [availableNeighbourhoods] = useState([
-    { id: 1, name: 'Bãi biển Mỹ Khê' },
-    { id: 2, name: 'Bãi biển Non Nước' },
-    { id: 3, name: 'Bán đảo Sơn Trà' },
-    { id: 4, name: 'Núi Ngũ Hành Sơn' },
-    { id: 5, name: 'Sông Hàn' },
-    { id: 6, name: 'Cầu Rồng' },
-    { id: 7, name: 'Chợ Hàn' },
-    { id: 8, name: 'Phố cổ Hội An' },
-    { id: 9, name: 'Bánh mì Phượng' },
-    { id: 10, name: 'Cà phê Trung Nguyên' }
-  ]);
+  const [amenities, setAmenities] = useState([]);
+  const [neighbourhoods, setNeighbourhoods] = useState([]);
+  const [policies, setPolicies] = useState([]);
 
   useEffect(() => {
     if (data) {
-      setFormData({
-        detailedDescription: data.detailedDescription || '',
-        latitude: data.latitude || '',
-        longitude: data.longitude || '',
-        policies: data.policies || [],
-        rules: data.rules || '',
-        amenities: data.amenities || [],
-        neighbourhoods: data.neighbourhoods || [],
-        mainImages: data.mainImages || []
-      });
-      
+      setFormData(prev => ({
+        ...prev,
+        ...data,
+        policyIds: Array.isArray(data.policyIds) ? data.policyIds : [],
+        neighbourhoodIds: Array.isArray(data.neighbourhoodIds) ? data.neighbourhoodIds : []
+      }));
+
       if (data.latitude && data.longitude) {
         const location = {
           lat: parseFloat(data.latitude),
@@ -119,6 +82,30 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
       }
     }
   }, [data]);
+
+  useEffect(() => {
+    getHomestayAmenities().then(res => {
+      if (res.value) setAmenities(res.value);
+    });
+  }, []);
+
+  useEffect(() => {
+    getNeighbourhoods().then(res => {
+      if (res.value) setNeighbourhoods(res.value);
+    });
+  }, []);
+
+  useEffect(() => {
+    getPolicies().then(res => {
+      if (res.value) {
+        setPolicies(res.value.map(p => ({
+          policyId: p.PolicyId,
+          name: p.Name
+        })));
+      }
+    });
+  }, []);
+
 
   // Search function using Nominatim API
   const searchLocation = async (query) => {
@@ -158,7 +145,7 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
   const handleSearchSelect = (result) => {
     const lat = parseFloat(result.lat);
     const lng = parseFloat(result.lon);
-    
+
     setSelectedLocation({ lat, lng });
     setMapCenter([lat, lng]);
     setFormData(prev => ({
@@ -166,10 +153,10 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
       latitude: lat.toString(),
       longitude: lng.toString()
     }));
-    
+
     setSearchQuery(result.display_name);
     setSearchResults([]);
-    
+
     setErrors(prev => ({
       ...prev,
       latitude: '',
@@ -180,7 +167,7 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
   // Handle homestay images upload
   const handleHomestayImageUpload = (event) => {
     const files = Array.from(event.target.files);
-    
+
     // Validate number of images
     if (formData.mainImages.length + files.length > 10) {
       setErrors(prev => ({
@@ -195,12 +182,12 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
       if (!file.type.startsWith('image/')) {
         return false;
       }
-      
+
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         return false;
       }
-      
+
       return true;
     });
 
@@ -245,18 +232,20 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
   const validateField = (name, value) => {
     switch (name) {
       case 'detailedDescription':
-        return value.length === 0 ? 'Mô tả chi tiết không được để trống' : 
-               value.length < 50 ? 'Mô tả chi tiết phải có ít nhất 50 ký tự' : '';
+        return value.length === 0 ? 'Mô tả chi tiết không được để trống' :
+          value.length < 50 ? 'Mô tả chi tiết phải có ít nhất 50 ký tự' : '';
       case 'latitude':
         return value.length === 0 ? 'Vui lòng chọn vị trí trên bản đồ' : '';
       case 'longitude':
         return value.length === 0 ? 'Vui lòng chọn vị trí trên bản đồ' : '';
       case 'policies':
         return value.length === 0 ? 'Vui lòng chọn ít nhất một chính sách' : '';
-      case 'amenities':
+      case 'amenityIds':
         return value.length === 0 ? 'Vui lòng chọn ít nhất một tiện nghi' : '';
       case 'mainImages':
         return value.length < 3 ? 'Vui lòng tải lên ít nhất 3 ảnh' : '';
+      case 'neighbourhoodIds':
+        return !value || value.length === 0 ? 'Vui lòng chọn ít nhất một khu vực' : '';
       default:
         return '';
     }
@@ -268,7 +257,7 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
       ...prev,
       [name]: value
     }));
-    
+
     const error = validateField(name, value);
     setErrors(prev => ({
       ...prev,
@@ -276,63 +265,65 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
     }));
   };
 
-  const handlePolicyChange = (policyId, isAllowed) => {
+  const handlePolicyChange = (e) => {
+    const id = Number(e.target.value);
     setFormData(prev => {
-      const updatedPolicies = prev.policies.filter(p => p.id !== policyId);
-      if (isAllowed) {
-        updatedPolicies.push({ id: policyId, isAllowed: true });
-      }
-      return { ...prev, policies: updatedPolicies };
+      const exists = prev.policies.find(p => p.policyId === id);
+      return {
+        ...prev,
+        policies: exists
+          ? prev.policies.filter(p => p.policyId !== id)
+          : [...prev.policies, { policyId: id, isAllow: true }] // mặc định là true
+      };
     });
   };
 
-  const handlePolicyAllowedChange = (policyId, isAllowed) => {
+  const handleIsAllowChange = (policyId, value) => {
+    setFormData(prev => ({
+      ...prev,
+      policies: prev.policies.map(p =>
+        p.policyId === policyId ? { ...p, isAllow: value === "true" } : p
+      )
+    }));
+  };
+
+  // Xử lý chọn/bỏ chọn amenity
+  const handleAmenityChange = (e) => {
+    const id = Number(e.target.value);
     setFormData(prev => {
-      const updatedPolicies = prev.policies.map(p => 
-        p.policyId === policyId ? { ...p, isAllowed } : p
-      );
-      return { ...prev, policies: updatedPolicies };
+      const exists = prev.amenityIds.includes(id);
+      return {
+        ...prev,
+        amenityIds: exists
+          ? prev.amenityIds.filter(aid => aid !== id)
+          : [...prev.amenityIds, id]
+      };
     });
   };
 
-  const handleAmenityChange = (amenityId, checked) => {
+  const handleNeighbourhoodChange = (e) => {
+    const id = Number(e.target.value);
     setFormData(prev => {
-      let updatedAmenities = [...(prev.amenities || [])];
-      if (checked) {
-        if (!updatedAmenities.includes(amenityId)) {
-          updatedAmenities.push(amenityId);
-        }
-      } else {
-        updatedAmenities = updatedAmenities.filter(id => id !== amenityId);
-      }
-      return { ...prev, amenities: updatedAmenities };
-    });
-  };
-
-  const handleNeighbourhoodChange = (neighbourhoodId, checked) => {
-    setFormData(prev => {
-      let updatedNeighbourhoods = [...(prev.neighbourhoods || [])];
-      if (checked) {
-        if (!updatedNeighbourhoods.includes(neighbourhoodId)) {
-          updatedNeighbourhoods.push(neighbourhoodId);
-        }
-      } else {
-        updatedNeighbourhoods = updatedNeighbourhoods.filter(id => id !== neighbourhoodId);
-      }
-      return { ...prev, neighbourhoods: updatedNeighbourhoods };
+      const exists = prev.neighbourhoodIds.includes(id);
+      return {
+        ...prev,
+        neighbourhoodIds: exists
+          ? prev.neighbourhoodIds.filter(nid => nid !== id)
+          : [...prev.neighbourhoodIds, id]
+      };
     });
   };
 
   const handleMapClick = (event) => {
     const { lat, lng } = event.latlng;
-    
+
     setSelectedLocation({ lat, lng });
     setFormData(prev => ({
       ...prev,
       latitude: lat.toString(),
       longitude: lng.toString()
     }));
-    
+
     setErrors(prev => ({
       ...prev,
       latitude: '',
@@ -343,12 +334,12 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
   const isFormValid = () => {
     const newErrors = {};
     Object.keys(formData).forEach(key => {
-      if (key !== 'rules' && key !== 'neighbourhoods') {
+      if (key !== 'rules' && key !== 'neighbourhoodIds') {
         const error = validateField(key, formData[key]);
         if (error) newErrors[key] = error;
       }
     });
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -412,7 +403,7 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
                 style={{ display: 'none' }}
                 id="homestay-images"
               />
-              
+
               <div className={styles.uploadArea}>
                 <label htmlFor="homestay-images" className={styles.uploadLabel}>
                   <i className="bi bi-images"></i>
@@ -457,7 +448,7 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
             <label className="form-label">
               Vị trí trên bản đồ <span className="text-danger">*</span>
             </label>
-            
+
             {/* Search Box */}
             <div className={styles.searchContainer}>
               <div className="input-group">
@@ -479,7 +470,7 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
                   </span>
                 )}
               </div>
-              
+
               {/* Search Results Dropdown */}
               {searchResults.length > 0 && (
                 <div className={styles.searchResults}>
@@ -537,54 +528,63 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
             </div>
           </div>
 
-          {/* Policies */}
           <div className="col-12">
-            <label className="form-label">
+            <label className="form-label fw-bold">
               Chính sách <span className="text-danger">*</span>
             </label>
             <div className={styles.policiesContainer}>
-              {availablePolicies.map(policy => {
-                const isSelected = formData.policies.some(p => p.id === policy.id);
-                const selectedPolicy = formData.policies.find(p => p.id === policy.id);
-                
-                return (
-                  <div key={policy.id} className={styles.policyItem}>
-                    <div className={styles.policyHeader}>
-                      <div className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`policy-${policy.id}`}
-                          checked={isSelected}
-                          onChange={(e) => handlePolicyChange(policy.id, e.target.checked)}
-                        />
-                        <label className="form-check-label" htmlFor={`policy-${policy.id}`}>
-                          {policy.label}
-                        </label>
-                      </div>
-                    </div>
-                    
-                    {isSelected && (
-                      <div className={styles.policySettings}>
-                        <div className="form-check form-switch">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id={`policy-allowed-${policy.id}`}
-                            checked={selectedPolicy?.isAllowed || false}
-                            onChange={(e) => handlePolicyAllowedChange(policy.id, e.target.checked)}
-                          />
-                          <label className="form-check-label" htmlFor={`policy-allowed-${policy.id}`}>
-                            {selectedPolicy?.isAllowed ? 'Cho phép' : 'Không cho phép'}
-                          </label>
+              {policies.length === 0 ? (
+                <div className="text-muted">Đang tải chính sách...</div>
+              ) : (
+                <div className="row g-3">
+                  {policies.map((policy) => {
+                    const selected = formData.policies.find((sel) => sel.policyId === policy.policyId);
+                    return (
+                      <div className="col-md-6" key={policy.policyId}>
+                        <div className={`card ${styles.policyCard} ${selected ? styles.selected : ''}`}>
+                          <div className="card-body d-flex align-items-center justify-content-between">
+                            <div className="form-check mb-0">
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id={`policy-${policy.policyId}`}
+                                value={policy.policyId}
+                                checked={!!selected}
+                                onChange={handlePolicyChange}
+                                disabled={loading}
+                                aria-label={`Chọn chính sách ${policy.name}`}
+                              />
+                              <label className="form-check-label" htmlFor={`policy-${policy.policyId}`}>
+                                {policy.name}
+                              </label>
+                            </div>
+                            {selected && (
+                              <div className={styles.toggleContainer}>
+                                <span className="me-2 text-muted">Cho phép?</span>
+                                <div className="form-check form-switch">
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id={`isAllow-${policy.policyId}`}
+                                    checked={selected.isAllow}
+                                    onChange={(e) => handleIsAllowChange(policy.policyId, e.target.checked ? "true" : "false")}
+                                    disabled={loading}
+                                    aria-label={`Cho phép chính sách ${policy.name}`}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
               {errors.policies && (
-                <div className="invalid-feedback d-block">{errors.policies}</div>
+                <div className={`invalid-feedback d-block mt-2 ${styles.errorMessage}`}>
+                  {errors.policies}
+                </div>
               )}
             </div>
           </div>
@@ -611,24 +611,27 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
               Tiện nghi <span className="text-danger">*</span>
             </label>
             <div className={styles.amenitiesContainer}>
-              {availableAmenities.map(amenity => (
-                <div key={amenity.id} className={styles.amenityItem}>
+              {amenities.length === 0 && <div>Đang tải tiện ích...</div>}
+              {amenities.map(amenity => (
+                <div key={amenity.AmenityId} className={styles.amenityItem}>
                   <div className="form-check">
                     <input
                       className="form-check-input"
                       type="checkbox"
-                      id={`amenity-${amenity.id}`}
-                      checked={formData.amenities && formData.amenities.includes(amenity.id)}
-                      onChange={(e) => handleAmenityChange(amenity.id, e.target.checked)}
+                      id={`amenity-${amenity.AmenityId}`}
+                      value={amenity.AmenityId}
+                      checked={formData.amenityIds.includes(amenity.AmenityId)}
+                      onChange={handleAmenityChange}
+                      disabled={loading}
                     />
-                    <label className="form-check-label" htmlFor={`amenity-${amenity.id}`}>
-                      {amenity.name}
+                    <label className="form-check-label" htmlFor={`amenity-${amenity.AmenityId}`}>
+                      {amenity.Name}
                     </label>
                   </div>
                 </div>
               ))}
-              {errors.amenities && (
-                <div className="invalid-feedback d-block">{errors.amenities}</div>
+              {errors.amenityIds && (
+                <div className="invalid-feedback d-block">{errors.amenityIds}</div>
               )}
             </div>
           </div>
@@ -636,26 +639,32 @@ const DetailedInformationStep = ({ data, onChange, onNext, onPrev, loading }) =>
           {/* Neighbourhoods */}
           <div className="col-12">
             <label className="form-label">
-              Khu vực lân cận (tùy chọn)
+              Khu vực lân cận <span className="text-danger">*</span>
             </label>
-            <div className={styles.neighbourhoodsContainer}>
-              {availableNeighbourhoods.map(neighbourhood => (
-                <div key={neighbourhood.id} className={styles.neighbourhoodItem}>
+            <div className="row">
+              {neighbourhoods.length === 0 && <div className="col-12">Đang tải khu vực...</div>}
+              {neighbourhoods.map(n => (
+                <div className="col-md-4" key={n.NeighbourhoodId}>
                   <div className="form-check">
                     <input
                       className="form-check-input"
                       type="checkbox"
-                      id={`neighbourhood-${neighbourhood.id}`}
-                      checked={formData.neighbourhoods && formData.neighbourhoods.includes(neighbourhood.id)}
-                      onChange={(e) => handleNeighbourhoodChange(neighbourhood.id, e.target.checked)}
+                      id={`neighbourhood-${n.NeighbourhoodId}`}
+                      value={n.NeighbourhoodId}
+                      checked={formData.neighbourhoodIds.includes(n.NeighbourhoodId)}
+                      onChange={handleNeighbourhoodChange}
+                      disabled={loading}
                     />
-                    <label className="form-check-label" htmlFor={`neighbourhood-${neighbourhood.id}`}>
-                      {neighbourhood.name}
+                    <label className="form-check-label" htmlFor={`neighbourhood-${n.NeighbourhoodId}`}>
+                      {n.Name}
                     </label>
                   </div>
                 </div>
               ))}
             </div>
+            {errors.neighbourhoodIds && (
+              <div className="invalid-feedback d-block">{errors.neighbourhoodIds}</div>
+            )}
           </div>
         </div>
 

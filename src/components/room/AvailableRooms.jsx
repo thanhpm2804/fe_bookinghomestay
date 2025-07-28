@@ -4,7 +4,7 @@ import DatePicker from 'react-datepicker';
 import { parse, format, startOfDay, isAfter, addDays } from 'date-fns';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const AvailableRooms = ({ checkIn, checkOut, rooms, onFilterRooms,  onSelectRoom }) => {
+const AvailableRooms = ({ checkIn, checkOut, rooms, onFilterRooms,  onSelectRoom, onCheckInDateChange, onCheckOutDateChange }) => {
   const [checkInDate, setCheckInDate] = useState(null);
   const [checkOutDate, setCheckOutDate] = useState(null);
   useEffect(() => {
@@ -20,6 +20,7 @@ const AvailableRooms = ({ checkIn, checkOut, rooms, onFilterRooms,  onSelectRoom
     }
   };
 
+  
   useEffect(() => {
     if (checkInDate && checkOutDate) {
       const today = startOfDay(new Date());
@@ -59,7 +60,11 @@ const AvailableRooms = ({ checkIn, checkOut, rooms, onFilterRooms,  onSelectRoom
             <label className={styles.formLabel}>Ngày nhận phòng:</label>
             <DatePicker
               selected={checkInDate}
-              onChange={(date) => setCheckInDate(date)}
+              onChange={(date) => {
+                const checkInFormatted = format(date, 'yyyy-MM-dd');
+                onCheckInDateChange(checkInFormatted)
+                setCheckInDate(date)
+              }}
               dateFormat="dd/MM/yyyy"
               className={styles.formControl}
               minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
@@ -69,7 +74,11 @@ const AvailableRooms = ({ checkIn, checkOut, rooms, onFilterRooms,  onSelectRoom
             <label className={styles.formLabel}>Ngày trả phòng:</label>
             <DatePicker
               selected={checkOutDate}
-              onChange={(date) => setCheckOutDate(date)}
+              onChange={(date) => {
+                const checkOutFormatted = format(date, 'yyyy-MM-dd');
+                onCheckInDateChange(checkOutFormatted)
+                setCheckOutDate(date)
+              }}
               dateFormat="dd/MM/yyyy"
               className={styles.formControl}
               minDate={checkInDate ? new Date(checkInDate.getTime() + 86400000) : new Date(new Date().setDate(new Date().getDate() + 2))}

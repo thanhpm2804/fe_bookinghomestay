@@ -44,3 +44,39 @@ export async function apiFetch(basePath, endpoint, options = {}) {
   const url = `${BASE_URL}/${basePath}/${endpoint}`;
   return fetch(url, options);
 }
+
+
+export const createOwnerAccount = async (ownerData) =>{
+    try {
+            const url = `${BASE_URL}/Account/create-owner-account`;
+            const newOwnerData = {
+                firstName: ownerData.firstName,
+                lastName: ownerData.lastName,
+                gender: parseInt(ownerData.gender),
+                dateOfBirth: ownerData.dateOfBirth,
+                email: ownerData.email,
+                phoneNumber: ownerData.phoneNumber,
+                address: ownerData.address,
+                avatarUrl: ownerData.avatarUrl,
+            }
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newOwnerData)
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                return { error: errorData.error || `HTTP error! Status: ${response.status}` };
+            }
+    
+            const data = await response.json();
+            return data;
+    
+        } catch (error) {
+            console.log(error);
+            return { error: "An unexpected error occurred" };
+        }
+}
