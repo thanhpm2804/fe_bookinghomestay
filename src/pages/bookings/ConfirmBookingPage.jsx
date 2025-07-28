@@ -25,7 +25,7 @@ const ConfirmBookingPage = () => {
             const userInfoData = await getUserInfor();
             if (userInfoData) {
                 setGuestInfo({
-                    fullName: `${userInfoData.lastName} ${userInfoData.fistName}`,
+                    fullName: `${userInfoData.lastName} ${userInfoData.firstName}`,
                     phone: userInfoData.phoneNumber
                 })
             }

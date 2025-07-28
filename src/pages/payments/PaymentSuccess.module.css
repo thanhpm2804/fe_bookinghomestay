@@ -1,0 +1,78 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(to right, #dbeafe, #ffffff); /* Blue-100 → white */
+  font-family: "Inter", sans-serif;
+}
+
+.card {
+  background-color: #ffffff;
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+}
+
+.iconCircle {
+  background-color: #ebf8ff; /* Blue-100 */
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkIcon {
+  width: 36px;
+  height: 36px;
+  stroke: #3182ce; /* Blue-600 */
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #2b6cb0; /* Blue-700 */
+  margin-bottom: 10px;
+}
+
+.message {
+  font-size: 16px;
+  color: #4a5568; /* Gray-700 */
+  margin-bottom: 10px;
+}
+
+.heartWrapper {
+  margin: 16px 0 30px;
+}
+
+.heartIcon {
+  stroke: #e53e3e;
+  fill: #fed7d7;
+  width: 28px;
+  height: 28px;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: #4299e1; /* Blue-500 */
+  color: white;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.backButton:hover {
+  background-color: #3182ce; /* Blue-600 */
+}

@@ -9,7 +9,6 @@ import styles from './HomestayDetailPage.module.css';
 
 const HomestayDetailPage = () => {
     const { id } = useParams();
-    const homestayId = 2;
     const [homestay, setHomestay] = useState(null);
     const [rooms, setRooms] = useState([]);
     const [checkIn, setCheckIn] = useState('2025-08-01');
@@ -22,14 +21,15 @@ const HomestayDetailPage = () => {
     const navigate = useNavigate();
 
     const fetchRooms = async (checkIn, checkOut) => {
-        const roomsData = await getRoomByHomestayId(homestayId, checkIn, checkOut)
+        const roomsData = await getRoomByHomestayId(id, checkIn, checkOut)
         console.log('RoomData: ', roomsData)
         setRooms(roomsData)
     }
     useEffect(() => {
         const loadHomestayAndRooms = async () => {
             setLoading(true);
-            const homestayData = await getHomestayById(2);
+            const homestayData = await getHomestayById(id);
+            console.log(homestayData)
             setHomestay(homestayData);
             await fetchRooms(checkIn, checkOut)
             setLoading(false);
@@ -50,6 +50,7 @@ const HomestayDetailPage = () => {
 
     // Xử lý chọn phòng
     const handleSelectRoom = (room) => {
+        
         const nights = calculateNights();
         const newRoom = {
             id: room.RoomId,
@@ -91,8 +92,15 @@ const HomestayDetailPage = () => {
 
     // Xử lý đặt phòng
     const handleBookRoom = () => {
+        
+        const token = localStorage.getItem('token');
+        if(token == null)
+        {
+            const navigate = useNavigate();
+            navigate('/')
+        }
         const bookingData = {
-            homestayId: homestayId,
+            homestayId: id,
             homestayName: homestay?.Name,
             homestayImageUrl: homestay?.ImageUrls[0],
             checkIn: checkIn,
@@ -100,7 +108,7 @@ const HomestayDetailPage = () => {
             rooms: selectedRooms,
             nights: calculateNights()
         };
-
+        console.log('bookingData: ', bookingData)
         navigate('/confirm-booking', {
             state: { bookingData }
         });
@@ -111,6 +119,16 @@ const HomestayDetailPage = () => {
         setShowBookingSummary(false);
     };
 
+    const handleCheckInDateChange = (newCheckIn) => {
+        setCheckIn(newCheckIn);
+        setSelectedRooms([]);
+        setShowBookingSummary(false);
+    }
+    const handleCheckOutDateChange = async (newCheckOut) => {
+        setCheckOut(newCheckOut);
+        setShowBookingSummary(false);
+        await fetchRooms(newCheckIn, newCheckOut);
+    }
     // Xử lý thay đổi ngày từ AvailableRooms
     const handleDateChange = async (newCheckIn, newCheckOut) => {
         setCheckIn(newCheckIn);
@@ -237,7 +255,9 @@ const HomestayDetailPage = () => {
                         {/* Rooms */}
                         <AvailableRooms checkIn={checkIn} checkOut={checkOut} rooms={rooms ? rooms : []}
                             onFilterRooms={fetchRooms}
-                            onSelectRoom={handleSelectRoom} />
+                            onSelectRoom={handleSelectRoom} 
+                           onCheckInDateChange={handleCheckInDateChange}
+                           onCheckOutDateChange={handleCheckOutDateChange}/>
 
                         {/* Neighborhood */}
                         <section className={styles.section}>
