@@ -2,7 +2,7 @@
 import * as jwt_decode from "jwt-decode";
 
 
-export const BASE_URL = "https://be-studyplan.runasp.net/api";
+export const BASE_URL = "https://localhost:7220/api";
 
 export async function login(email, password) {
   const res = await fetch(`${BASE_URL}/Account/login`, {

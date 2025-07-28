@@ -146,7 +146,7 @@ export async function uploadImage(file) {
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch('https://localhost:7220/api/ImageUpload/upload', {
+    const res = await fetch(`${BASE_URL.replace('/api', '')}/api/ImageUpload/upload`, {
       method: 'POST',
       body: formData,
     });

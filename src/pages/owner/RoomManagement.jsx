@@ -245,10 +245,87 @@ function RoomManagement() {
         setNotification({ show: true, message: 'Vui lòng nhập sức chứa hợp lệ', type: 'error' });
         return;
       }
+      if (form.roomPrices.length <= 0) {
+        setNotification({ show: true, message: 'Vui lòng Thêm ít nhất 1 loại giá', type: 'error' });
+        return;
+      }
+      
+      const invalidPrice = form.roomPrices.some(
+        (p) => !p.priceTypeId || Number(p.amountPerNight) <= 0
+      );
+      
+      if (invalidPrice) {
+        setNotification({ show: true, message: 'Vui lòng nhập giá hợp lệ', type: 'error' });
+        return;
+      }
+      
+      // Kiểm tra roomBeds
+      if (form.roomBeds.length <= 0) {
+        setNotification({ show: true, message: 'Vui lòng Thêm ít nhất 1 loại Giường', type: 'error' });
+        return;
+      }
+      
+      const invalidBed = form.roomBeds.some(
+        (b) => !b.bedTypeId || Number(b.quantity) <= 0
+      );
+      
+      if (invalidBed) {
+        setNotification({ show: true, message: 'Vui lòng nhập loại giường hợp lệ', type: 'error' });
+        return;
+      }
+      if (form.roomBeds.length <= 0) {
+        setNotification({ show: true, message: 'Vui lòng thêm ít nhất 1 loại giường', type: 'error' });
+        return;
+      }
+      
+      const hasInvalidBed = form.roomBeds.some(
+        (bed) => !bed.bedTypeId || Number(bed.quantity) <= 0
+      );
+      
+      if (hasInvalidBed) {
+        setNotification({ show: true, message: 'Vui lòng nhập loại giường hợp lệ', type: 'error' });
+        return;
+      }
       if (!selectedHomestayId) {
         setNotification({ show: true, message: 'Vui lòng chọn homestay', type: 'error' });
         return;
       }
+      
+      // Validate RoomSchedules - Chỉ validate khi cập nhật phòng
+      if (editingRoom && Array.isArray(form.roomSchedules) && form.roomSchedules.length > 0) {
+        for (let i = 0; i < form.roomSchedules.length; i++) {
+          const sch = form.roomSchedules[i];
+          
+          // Helper function để parse datetime-local không bị timezone offset
+          const parseDateTimeLocal = (dateTimeString) => {
+            if (!dateTimeString) return null;
+            // datetime-local trả về format: "2024-01-15T08:00"
+            // Parse thành Date object với local time
+            const [datePart, timePart] = dateTimeString.split('T');
+            const [year, month, day] = datePart.split('-').map(Number);
+            const [hours, minutes] = timePart.split(':').map(Number);
+            
+            return new Date(year, month - 1, day, hours, minutes);
+          };
+          
+          const start = parseDateTimeLocal(sch.StartDate);
+          const end = parseDateTimeLocal(sch.EndDate);
+          const now = new Date();
+          
+          // Kiểm tra startDate không được trong quá khứ
+          if (start && start < new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
+            setNotification({ show: true, message: `Lịch ${i + 1}: Không chọn ngày bắt đầu trong quá khứ`, type: 'error' });
+            return;
+          }
+          
+          // Kiểm tra endDate không được bé hơn startDate
+          if (start && end && end < start) {
+            setNotification({ show: true, message: `Lịch ${i + 1}: Đến ngày phải lớn hơn hoặc bằng Từ ngày`, type: 'error' });
+            return;
+          }
+        }
+      }
+      
       // Nếu có ảnh mới được chọn, upload trước
       let finalImgUrl = form.imgUrl;
       if (selectedImage) {
@@ -303,13 +380,32 @@ function RoomManagement() {
         roomData.roomAmenities = form.roomAmenities.map(id => ({ amenityId: id }));
       }
 
-      // Chuẩn bị roomSchedules
-      if (Array.isArray(form.roomSchedules) && form.roomSchedules.length > 0) {
+      // Chuẩn bị roomSchedules - Chỉ khi cập nhật phòng
+      if (editingRoom && Array.isArray(form.roomSchedules) && form.roomSchedules.length > 0) {
         roomData.roomSchedules = form.roomSchedules.map(sch => {
+          // Format datetime giữ nguyên thời gian người dùng chọn
+          const formatToISO = (dateTimeString) => {
+            if (!dateTimeString) return '';
+            // datetime-local trả về format: "2024-01-15T08:00"
+            // Cần convert thành ISO string mà không bị timezone offset
+            const date = new Date(dateTimeString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+          };
+          
+          const startDate = formatToISO(sch.StartDate);
+          const endDate = formatToISO(sch.EndDate);
+          
           const base = {
             roomId: isUpdate ? (editingRoom.roomId || editingRoom.RoomId) : '',
-            startDate: sch.StartDate ? new Date(sch.StartDate).toISOString() : '',
-            endDate: sch.EndDate ? new Date(sch.EndDate).toISOString() : '',
+            startDate: startDate,
+            endDate: endDate,
             scheduleType: scheduleTypeIdToString(sch.ScheduleType),
           };
           if (isUpdate && sch.ScheduleId) {
@@ -416,34 +512,70 @@ function RoomManagement() {
   };
 
   // Thêm/xóa dòng động cho các array field
-  const handleAddBed = () => {
-    setForm({ ...form, roomBeds: [...form.roomBeds, { bedTypeId: '', quantity: '' }] });
-  };
-  const handleBedChange = (idx, field, value) => {
-    const newBeds = [...form.roomBeds];
-    newBeds[idx][field] = value;
-    setForm({ ...form, roomBeds: newBeds });
-  };
-  const handleRemoveBed = (idx) => {
-    const newBeds = [...form.roomBeds];
-    newBeds.splice(idx, 1);
-    setForm({ ...form, roomBeds: newBeds });
-  };
+ // Validate bed fields
+const isValidBed = (bed) =>
+  bed &&
+  (bed.bedTypeId || bed.BedTypeId)?.trim() &&
+  !isNaN(Number(bed.quantity || bed.Quantity)) &&
+  Number(bed.quantity || bed.Quantity) > 0;
 
-  const handleAddPrice = () => {
-    setForm({ ...form, roomPrices: [...form.roomPrices, { priceTypeId: '', amountPerNight: '' }] });
-  };
-  const handlePriceChange = (idx, field, value) => {
-    const newPrices = [...form.roomPrices];
-    newPrices[idx][field] = value;
-    setForm({ ...form, roomPrices: newPrices });
-  };
-  const handleRemovePrice = (idx) => {
-    const newPrices = [...form.roomPrices];
-    newPrices.splice(idx, 1);
-    setForm({ ...form, roomPrices: newPrices });
-  };
+// Validate price fields
+const isValidPrice = (price) =>
+  price &&
+  (price.priceTypeId || price.PriceTypeId)?.trim() &&
+  !isNaN(Number(price.amountPerNight || price.AmountPerNight)) &&
+  Number(price.amountPerNight || price.AmountPerNight) >= 0;
 
+// Bed handlers
+const handleAddBed = () => {
+  const lastBed = form.roomBeds.at(-1);
+  if (lastBed && !isValidBed(lastBed)) {
+    setNotification({ show: true, message: 'Vui lòng nhập đầy đủ thông tin giường', type: 'error' });
+    
+    return;
+  }
+  setForm({
+    ...form,
+    roomBeds: [...form.roomBeds, { bedTypeId: '', quantity: '' }],
+  });
+};
+
+const handleBedChange = (idx, field, value) => {
+  const updatedBeds = [...form.roomBeds];
+  updatedBeds[idx][field] = value;
+  setForm({ ...form, roomBeds: updatedBeds });
+};
+
+const handleRemoveBed = (idx) => {
+  const updatedBeds = [...form.roomBeds];
+  updatedBeds.splice(idx, 1);
+  setForm({ ...form, roomBeds: updatedBeds });
+};
+
+// Price handlers
+const handleAddPrice = () => {
+  const lastPrice = form.roomPrices.at(-1);
+  if (lastPrice && !isValidPrice(lastPrice)) {
+    setNotification({ show: true, message: 'Vui lòng nhập đầy đủ thông tin Giá', type: 'error' });   
+    return;
+  }
+  setForm({
+    ...form,
+    roomPrices: [...form.roomPrices, { priceTypeId: '', amountPerNight: '' }],
+  });
+};
+
+const handlePriceChange = (idx, field, value) => {
+  const updatedPrices = [...form.roomPrices];
+  updatedPrices[idx][field] = value;
+  setForm({ ...form, roomPrices: updatedPrices });
+};
+
+const handleRemovePrice = (idx) => {
+  const updatedPrices = [...form.roomPrices];
+  updatedPrices.splice(idx, 1);
+  setForm({ ...form, roomPrices: updatedPrices });
+};
   const handleAmenitiesChange = (event) => {
     const value = event.target.value;
     setForm({ ...form, roomAmenities: value });
@@ -835,26 +967,62 @@ function RoomManagement() {
               </Select>
             </FormControl>
           </Box>
-          {/* RoomSchedules */}
-          <Box mt={2}>
-            <Typography fontWeight={600} marginBottom={2}>Lịch phòng</Typography>
-            {form.roomSchedules.map((sch, idx) => (
-              <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 1, flexWrap: 'wrap' }}>
-                {/* <TextField label="RoomId" value={sch.roomId} onChange={e => handleScheduleChange(idx, 'roomId', e.target.value)} sx={{ width: 100 }} /> */}
-                {/* <TextField label="ScheduleId" value={sch.ScheduleId} onChange={e => handleScheduleChange(idx, 'ScheduleId', e.target.value)} sx={{ width: 100 }} disabled /> */}
-                <TextField label="Từ ngày" type="datetime-local" value={sch.StartDate} onChange={e => handleScheduleChange(idx, 'StartDate', e.target.value)} sx={{ width: 200 }} InputLabelProps={{ shrink: true }} />
-                <TextField label="Đến ngày" type="datetime-local" value={sch.EndDate} onChange={e => handleScheduleChange(idx, 'EndDate', e.target.value)} sx={{ width: 200 }} InputLabelProps={{ shrink: true }} />
-                <FormControl sx={{ minWidth: 140 }}>
-                  <InputLabel>Loại lịch</InputLabel>
-                  <Select value={sch.ScheduleType} label="Loại lịch" onChange={e => handleScheduleChange(idx, 'ScheduleType', e.target.value)}>
-                    {scheduleTypes.map(st => <MenuItem key={st.id} value={st.id}>{st.name}</MenuItem>)}
-                  </Select>
-                </FormControl>
-                <Button color="error" onClick={() => handleRemoveSchedule(idx)}>Xóa</Button>
-              </Box>
-            ))}
-            <Button onClick={handleAddSchedule} variant="outlined">Thêm lịch</Button>
-          </Box>
+          {/* RoomSchedules - Chỉ hiển thị khi cập nhật phòng */}
+          {editingRoom && (
+            <Box mt={2}>
+              <Typography fontWeight={600} marginBottom={2}>Lịch phòng</Typography>
+              {form.roomSchedules.map((sch, idx) => {
+                // Validate UI: endDate < startDate và startDate trong quá khứ
+                const parseDateTimeLocal = (dateTimeString) => {
+                  if (!dateTimeString) return null;
+                  const [datePart, timePart] = dateTimeString.split('T');
+                  const [year, month, day] = datePart.split('-').map(Number);
+                  const [hours, minutes] = timePart.split(':').map(Number);
+                  return new Date(year, month - 1, day, hours, minutes);
+                };
+                
+                const start = parseDateTimeLocal(sch.StartDate);
+                const end = parseDateTimeLocal(sch.EndDate);
+                const now = new Date();
+                const endDateError = start && end && end < start;
+                const startDateError = start && start < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                
+                return (
+                  <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 1, flexWrap: 'wrap' }}>
+                    <TextField 
+                      label="Từ ngày" 
+                      type="datetime-local" 
+                      value={sch.StartDate} 
+                      onChange={e => handleScheduleChange(idx, 'StartDate', e.target.value)} 
+                      sx={{ width: 200 }} 
+                      InputLabelProps={{ shrink: true }}
+                      inputProps={{ min: new Date().toISOString().slice(0, 16) }}
+                      error={startDateError}
+                      helperText={startDateError ? 'Không chọn ngày bắt đầu trong quá khứ' : ''}
+                    />
+                    <TextField 
+                      label="Đến ngày" 
+                      type="datetime-local" 
+                      value={sch.EndDate} 
+                      onChange={e => handleScheduleChange(idx, 'EndDate', e.target.value)} 
+                      sx={{ width: 200 }} 
+                      InputLabelProps={{ shrink: true }}
+                      error={endDateError}
+                      helperText={endDateError ? 'Đến ngày phải lớn hơn hoặc bằng Từ ngày' : ''}
+                    />
+                    <FormControl sx={{ minWidth: 140 }}>
+                      <InputLabel>Loại lịch</InputLabel>
+                      <Select value={sch.ScheduleType} label="Loại lịch" onChange={e => handleScheduleChange(idx, 'ScheduleType', e.target.value)}>
+                        {scheduleTypes.map(st => <MenuItem key={st.id} value={st.id}>{st.name}</MenuItem>)}
+                      </Select>
+                    </FormControl>
+                    <Button color="error" onClick={() => handleRemoveSchedule(idx)}>Xóa</Button>
+                  </Box>
+                );
+              })}
+              <Button onClick={handleAddSchedule} variant="outlined">Thêm lịch</Button>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} disabled={uploading}>Hủy</Button>
