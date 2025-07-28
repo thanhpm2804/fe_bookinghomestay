@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styles from './BookingSummary.module.css';
 
 const BookingSummary = ({
@@ -10,8 +10,6 @@ const BookingSummary = ({
   onBook,
   onClose
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
   if (!isVisible) return null;
 
   // Tính tổng số tiền
@@ -49,114 +47,84 @@ const BookingSummary = ({
 
   const nights = calculateNights();
 
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
-  };
-
   return (
-    <div className={`${styles.summaryContainer} ${isCollapsed ? styles.collapsed : ''}`}>
-      {/* Toggle Button */}
-      <button 
-        className={styles.toggleButton}
-        onClick={toggleCollapse}
-        aria-label={isCollapsed ? "Mở rộng" : "Thu gọn"}
-      >
-        <i className={`bi bi-chevron-${isCollapsed ? 'up' : 'down'}`}></i>
-      </button>
-
+    <div className={styles.summaryContainer}>
       <div className={styles.summaryContent}>
         {/* Header */}
         <div className={styles.summaryHeader}>
           <h3 className={styles.summaryTitle}>
             Booking ({selectedRooms.length} phòng)
           </h3>
+          <button 
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label="Đóng"
+          >
+            ×
+          </button>
         </div>
 
-        {/* Collapsible Content */}
-        <div className={`${styles.collapsibleContent} ${isCollapsed ? styles.hidden : ''}`}>
-          {/* Date Information */}
-          <div className={styles.dateInfo}>
-            <div className={styles.dateItem}>
-              <span className={styles.dateLabel}>Ngày nhận phòng</span>
-              <span className={styles.dateValue}>
-                {checkInDate ? formatDate(checkInDate) : '--'}
-              </span>
-            </div>
-            <div className={styles.dateItem}>
-              <span className={styles.dateLabel}>Ngày trả phòng</span>
-              <span className={styles.dateValue}>
-                {checkOutDate ? formatDate(checkOutDate) : '--'}
-              </span>
-            </div>
-            <div className={styles.dateItem}>
-              <span className={styles.dateLabel}>Số đêm</span>
-              <span className={styles.dateValue}>{nights} đêm</span>
-            </div>
+        {/* Date Information */}
+        <div className={styles.dateInfo}>
+          <div className={styles.dateItem}>
+            <span className={styles.dateLabel}>Ngày nhận phòng</span>
+            <span className={styles.dateValue}>
+              {checkInDate ? formatDate(checkInDate) : '--'}
+            </span>
           </div>
+          <div className={styles.dateItem}>
+            <span className={styles.dateLabel}>Ngày trả phòng</span>
+            <span className={styles.dateValue}>
+              {checkOutDate ? formatDate(checkOutDate) : '--'}
+            </span>
+          </div>
+          <div className={styles.dateItem}>
+            <span className={styles.dateLabel}>Số đêm</span>
+            <span className={styles.dateValue}>{nights} đêm</span>
+          </div>
+        </div>
 
-          {/* Rooms List */}
-          <div className={styles.roomsList}>
-            {selectedRooms.length === 0 ? (
-              <div className={styles.emptyState}>
-                <p>Chưa có phòng nào được chọn</p>
-              </div>
-            ) : (
-              selectedRooms.map((room) => (
-                <div key={room.id} className={styles.roomItem}>
-                  <div className={styles.roomInfo}>
-                    <div className={styles.roomName}>{room.name}</div>
-                  </div>
-                  <div className={styles.roomPrice}>
-                    {formatPrice(room.price)} /đêm
-                  </div>
-                  <button
-                    className={styles.removeButton}
-                    onClick={() => onRemoveRoom(room.id)}
-                    aria-label={`Xóa ${room.name}`}
-                  >
-                    Xóa
-                  </button>
+        {/* Rooms List */}
+        <div className={styles.roomsList}>
+          {selectedRooms.length === 0 ? (
+            <div className={styles.emptyState}>
+              <p>Chưa có phòng nào được chọn</p>
+            </div>
+          ) : (
+            selectedRooms.map((room) => (
+              <div key={room.id} className={styles.roomItem}>
+                <div className={styles.roomInfo}>
+                  <div className={styles.roomName}>{room.name}</div>
                 </div>
-              ))
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className={styles.summaryFooter}>
-            <div>
-              <div className={styles.totalLabel}>Tổng cộng</div>
-              <div className={styles.totalPrice}>{formatPrice(totalPrice)}</div>
-            </div>
-            <button
-              className={styles.bookButton}
-              onClick={onBook}
-              disabled={selectedRooms.length === 0}
-            >
-              Đặt phòng
-            </button>
-          </div>
+                <div className={styles.roomPrice}>
+                  {formatPrice(room.price)} /đêm
+                </div>
+                <button
+                  className={styles.removeButton}
+                  onClick={() => onRemoveRoom(room.id)}
+                  aria-label={`Xóa ${room.name}`}
+                >
+                  Xóa
+                </button>
+              </div>
+            ))
+          )}
         </div>
 
-        {/* Collapsed Summary */}
-        {isCollapsed && (
-          <div className={styles.collapsedSummary}>
-            <div className={styles.collapsedInfo}>
-              <span className={styles.collapsedText}>
-                {selectedRooms.length} phòng • {nights} đêm
-              </span>
-              <span className={styles.collapsedPrice}>
-                {formatPrice(totalPrice)}
-              </span>
-            </div>
-            <button
-              className={styles.collapsedBookButton}
-              onClick={onBook}
-              disabled={selectedRooms.length === 0}
-            >
-              Đặt phòng
-            </button>
+        {/* Footer */}
+        <div className={styles.summaryFooter}>
+          <div>
+            <div className={styles.totalLabel}>Tổng cộng</div>
+            <div className={styles.totalPrice}>{formatPrice(totalPrice)}</div>
           </div>
-        )}
+          <button
+            className={styles.bookButton}
+            onClick={onBook}
+            disabled={selectedRooms.length === 0}
+          >
+            Đặt phòng
+          </button>
+        </div>
       </div>
     </div>
   );

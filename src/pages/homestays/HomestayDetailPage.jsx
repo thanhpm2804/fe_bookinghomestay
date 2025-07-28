@@ -30,6 +30,7 @@ const HomestayDetailPage = () => {
         const loadHomestayAndRooms = async () => {
             setLoading(true);
             const homestayData = await getHomestayById(2);
+            console.log(homestayData)
             setHomestay(homestayData);
             await fetchRooms(checkIn, checkOut)
             setLoading(false);

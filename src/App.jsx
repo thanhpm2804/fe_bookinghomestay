@@ -17,6 +17,8 @@ import HomestayUpdate from "./pages/owner/HomestayUpdate";
 import Revenue from "./pages/owner/Revenue";
 import BookingList from "./pages/owner/BookingList";
 import OwnerWelcome from "./pages/owner/OwnerWelcome";
+import PaymentSuccess from "./pages/payments/PaymentSuccess";
+import CreateHomestayPage from "./pages/homestays/CreateHomestayPage";
 
 function App() {
   return (
@@ -30,7 +32,9 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/home" element={<Home />} />
         <Route path="/homestay-detail" element={<HomestayDetailPage />} />
+        <Route path="/create-homestay" element={<CreateHomestayPage />} />
         <Route path="/confirm-booking" element={<ConfirmBookingPage />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
         <Route path="/owner" element={<OwnerDashboard />}>

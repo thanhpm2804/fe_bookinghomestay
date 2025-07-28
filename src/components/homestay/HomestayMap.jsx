@@ -85,7 +85,7 @@ const HomestayMap = ({ homestayName, latitude, longitude }) => {
       
       {isInvalidCoords && (
         <div className={styles.warningBadge}>
-          ⚠️ Tọa độ mặc định: Đà Nẵng
+           Tọa độ mặc định: Đà Nẵng
         </div>
       )}
     </div>
