@@ -1,27 +1,36 @@
 // API base URL
-const API_BASE = 'https://localhost:7220';
+import { BASE_URL } from './auth';
 
 // Load homestays with full expand
 export async function fetchHomestays() {
-  try {
-    const response = await fetch(`${API_BASE}/odata/Homestays/MyHomestays()?$expand=ward(expand=district),HomestayAmenities(expand=Amenity),HomestayPolicies(expand=policy),HomestayNeighbourhoods(expand=Neighbourhood),HomestayImages`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch homestays');
+    try {
+      const token = localStorage.getItem("token");
+  
+      const response = await fetch(
+        `${BASE_URL.replace('/api', '')}/odata/Homestays/MyHomestays()?$expand=ward(expand=district),HomestayAmenities(expand=Amenity),HomestayPolicies(expand=policy),HomestayNeighbourhoods(expand=Neighbourhood),HomestayImages`,
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error('Failed to fetch homestays');
+      }
+  
+      const data = await response.json();
+      return data.value || [];
+    } catch (error) {
+      console.error('fetchHomestays error:', error);
+      throw error;
     }
-    
-    const data = await response.json();
-    return data.value || [];
-  } catch (error) {
-    console.error('fetchHomestays error:', error);
-    throw error;
   }
-}
 
 // Load policies
 export async function fetchPolicies() {
   try {
-    const response = await fetch(`${API_BASE}/odata/Policy`);
+    const response = await fetch(`${BASE_URL.replace('/api', '')}/odata/Policy`);
     
     if (!response.ok) {
       throw new Error('Failed to fetch policies');
@@ -38,7 +47,7 @@ export async function fetchPolicies() {
 // Load amenities
 export async function fetchAmenities() {
   try {
-    const response = await fetch(`${API_BASE}/odata/Amenity`);
+    const response = await fetch(`${BASE_URL.replace('/api', '')}/odata/Amenity`);
     
     if (!response.ok) {
       throw new Error('Failed to fetch amenities');
@@ -55,7 +64,7 @@ export async function fetchAmenities() {
 // Load neighbourhoods
 export async function fetchNeighbourhoods() {
   try {
-    const response = await fetch(`${API_BASE}/odata/Neighbourhood`);
+    const response = await fetch(`${BASE_URL.replace('/api', '')}/odata/Neighbourhood`);
     
     if (!response.ok) {
       throw new Error('Failed to fetch neighbourhoods');
@@ -72,7 +81,7 @@ export async function fetchNeighbourhoods() {
 // Load wards
 export async function fetchWards() {
   try {
-    const response = await fetch(`${API_BASE}/api/wards`);
+    const response = await fetch(`${BASE_URL.replace('/api', '')}/api/wards`);
     
     if (!response.ok) {
       throw new Error('Failed to fetch wards');
@@ -94,7 +103,7 @@ export async function uploadMultipleImages(files) {
       formData.append('files', file);
     });
 
-    const response = await fetch(`${API_BASE}/api/ImageUpload/upload-multiple`, {
+    const response = await fetch(`${BASE_URL.replace('/api', '')}/api/ImageUpload/upload-multiple`, {
       method: 'POST',
       body: formData
     });
@@ -118,7 +127,7 @@ export async function updateHomestay(homestayId, homestayData) {
   try {
     console.log('Updating homestay with data:', homestayData);
     
-    const response = await fetch(`${API_BASE}/odata/Homestays(${homestayId})`, {
+    const response = await fetch(`${BASE_URL.replace('/api', '')}/odata/Homestays(${homestayId})`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'

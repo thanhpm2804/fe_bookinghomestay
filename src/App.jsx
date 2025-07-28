@@ -17,6 +17,8 @@ import HomestayUpdate from "./pages/owner/HomestayUpdate";
 import Revenue from "./pages/owner/Revenue";
 import BookingList from "./pages/owner/BookingList";
 import OwnerWelcome from "./pages/owner/OwnerWelcome";
+import GridTest from "./pages/owner/GridTest";
+import RequireRole from "./components/RequireRole";
 
 function App() {
   return (
@@ -33,12 +35,20 @@ function App() {
         <Route path="/confirm-booking" element={<ConfirmBookingPage />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
-        <Route path="/owner" element={<OwnerDashboard />}>
-          <Route index element={<OwnerWelcome />} />
-          <Route path="rooms" element={<RoomManagement />} />
-          <Route path="homestay" element={<HomestayUpdate />} />
-          <Route path="revenue" element={<Revenue />} />
-          <Route path="bookings" element={<BookingList />} />
+        <Route
+          path="/owner"
+          element={
+            <RequireRole allowedRoles={["Owner"]}>
+              <OwnerDashboard />
+            </RequireRole>
+          }
+          >
+            <Route index element={<RoomManagement />} />
+            <Route path="rooms" element={<RoomManagement />} />
+            <Route path="homestay" element={<HomestayUpdate />} />
+            <Route path="revenue" element={<Revenue />} />
+            <Route path="bookings" element={<BookingList />} />
+            <Route path="grid-test" element={<GridTest />} />
         </Route>
       </Routes>
     </AuthProvider>

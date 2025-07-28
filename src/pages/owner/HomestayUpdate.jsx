@@ -42,10 +42,11 @@ function HomestayUpdate() {
   const [neighbourhoods, setNeighbourhoods] = useState([]);
   const [wards, setWards] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [uploading, setUploading] = useState(false);
+  
+  // Notification state
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
 
   // Form state
   const [form, setForm] = useState({
@@ -66,6 +67,16 @@ function HomestayUpdate() {
     loadData();
   }, []);
 
+  // Auto hide notification
+  useEffect(() => {
+    if (notification.show) {
+      const timer = setTimeout(() => {
+        setNotification({ show: false, message: '', type: 'success' });
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification.show]);
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -77,7 +88,7 @@ function HomestayUpdate() {
       setWards(data.wards);
     } catch (error) {
       console.error('Error loading data:', error);
-      setError('Không thể tải dữ liệu. Vui lòng thử lại.');
+      setNotification({ show: true, message: 'Không thể tải dữ liệu. Vui lòng thử lại.', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -119,8 +130,7 @@ function HomestayUpdate() {
       selectedImages: [],
       imagePreview: []
     });
-    setError('');
-    setSuccess('');
+    // Reset notification state
   };
 
   const handleFormChange = (field, value) => {
@@ -182,8 +192,7 @@ function HomestayUpdate() {
     if (!selectedHomestay) return;
 
     setUploading(true);
-    setError('');
-    setSuccess('');
+    // Reset notification state
 
     try {
       // Upload new images if any
@@ -205,7 +214,7 @@ function HomestayUpdate() {
       // Update homestay using service
       await updateHomestay(selectedHomestay.HomestayId, homestayData);
 
-      setSuccess('Cập nhật homestay thành công!');
+      setNotification({ show: true, message: 'Cập nhật homestay thành công!', type: 'success' });
       
       // Close dialog immediately
       handleCloseDialog();
@@ -217,7 +226,7 @@ function HomestayUpdate() {
 
     } catch (error) {
       console.error('Update error:', error);
-      setError(error.message || 'Cập nhật thất bại. Vui lòng thử lại.');
+      setNotification({ show: true, message: error.message || 'Cập nhật thất bại. Vui lòng thử lại.', type: 'error' });
     } finally {
       setUploading(false);
     }
@@ -232,127 +241,279 @@ function HomestayUpdate() {
   }
 
   return (
-    <Box sx={{ width: '100%', p: 3, boxSizing: 'border-box', background: '#fff', borderRadius: 3, boxShadow: 2 }}>
-      <Typography variant="h5" fontWeight={700} mb={3}>Cập nhật Homestay</Typography>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
+    <Box sx={{ 
+      width: '100%', 
+      p: 4, 
+      boxSizing: 'border-box', 
+      background: 'rgba(255, 255, 255, 0.8)',
+      backdropFilter: 'blur(10px)',
+      borderRadius: '20px',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
+    }}>
+      {/* Success/Error Notification */}
+      {notification.show && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 20,
+            right: 20,
+            zIndex: 9999,
+            backgroundColor: notification.type === 'success' ? '#4caf50 !important' : '#f44336 !important',
+            color: 'white !important',
+            padding: '16px 24px',
+            borderRadius: '12px',
+            boxShadow: notification.type === 'success' 
+              ? '0 8px 24px rgba(76, 175, 80, 0.3)' 
+              : '0 8px 24px rgba(244, 67, 54, 0.3)',
+            minWidth: '280px',
+            fontWeight: 600,
+            fontSize: '14px',
+            animation: 'slideInRight 0.3s ease-out',
+            pointerEvents: 'none',
+            '@keyframes slideInRight': {
+              '0%': {
+                transform: 'translateX(100%)',
+                opacity: 0
+              },
+              '100%': {
+                transform: 'translateX(0)',
+                opacity: 1
+              }
+            }
+          }}
+        >
+          {notification.message}
+        </Box>
       )}
 
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {success}
-        </Alert>
-      )}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" fontWeight={800} sx={{ 
+          background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
+          backgroundClip: 'text',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          mb: 1
+        }}>
+          Cập nhật Homestay
+        </Typography>
+        <Typography variant="h6" sx={{ 
+          color: '#64748b',
+          fontWeight: 500
+        }}>
+          Chỉnh sửa thông tin và hình ảnh homestay của bạn
+        </Typography>
+      </Box>
 
       {/* Homestay List */}
-      <Grid container spacing={2}>
+      <Box sx={{ 
+        display: 'grid',
+        gridTemplateColumns: {
+          xs: '1fr',
+          md: 'repeat(2, 1fr)',
+          lg: 'repeat(3, 1fr)',
+        },
+        gap: 3
+      }}>
         {homestays.map((homestay) => (
-          <Grid item xs={12} md={6} lg={4} key={homestay.HomestayId}>
-            <Card sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 4 } }}
+          <Box key={homestay.HomestayId}>
+            <Card sx={{ 
+              height: '100%', 
+              cursor: 'pointer', 
+              borderRadius: '16px',
+              background: 'rgba(255, 255, 255, 0.9)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+              transition: 'all 0.3s ease',
+              '&:hover': { 
+                transform: 'translateY(-4px)',
+                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)',
+              } 
+            }}
                   onClick={() => handleHomestaySelect(homestay)}>
-              <CardContent>
+              <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   {homestay.HomestayImages && homestay.HomestayImages.length > 0 ? (
                     <Avatar
                       src={homestay.HomestayImages[0].ImageUrl}
-                      sx={{ width: 60, height: 60, mr: 2 }}
+                      sx={{ 
+                        width: 64, 
+                        height: 64, 
+                        mr: 2,
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                      }}
                     />
                   ) : (
-                    <Avatar sx={{ width: 60, height: 60, mr: 2, bgcolor: 'grey.300' }}>
+                    <Avatar sx={{ 
+                      width: 64, 
+                      height: 64, 
+                      mr: 2, 
+                      bgcolor: 'grey.300',
+                      borderRadius: '12px'
+                    }}>
                       <Typography variant="caption">No Image</Typography>
                     </Avatar>
                   )}
                   <Box>
-                    <Typography variant="h6" fontWeight={600}>
+                    <Typography variant="h6" fontWeight={700} sx={{ color: '#1e293b', mb: 0.5 }}>
                       {homestay.Name}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                       {homestay.StreetAddress}
                     </Typography>
                     {homestay.Ward && (
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
                         {homestay.Ward.Name} - {homestay.Ward.District?.Name}
                       </Typography>
                     )}
                   </Box>
                 </Box>
 
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.5 }}>
                   {homestay.Description || 'Không có mô tả'}
                 </Typography>
 
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
                   <Chip 
                     label={`${homestay.HomestayAmenities?.length || 0} tiện ích`} 
                     size="small" 
-                    color="primary" 
+                    color="primary"
+                    sx={{ borderRadius: '8px', fontWeight: 600 }}
                   />
                   <Chip 
                     label={`${homestay.HomestayPolicies?.length || 0} quy định`} 
                     size="small" 
-                    color="secondary" 
+                    color="secondary"
+                    sx={{ borderRadius: '8px', fontWeight: 600 }}
                   />
                   <Chip 
                     label={`${homestay.HomestayImages?.length || 0} ảnh`} 
                     size="small" 
-                    color="info" 
+                    color="info"
+                    sx={{ borderRadius: '8px', fontWeight: 600 }}
                   />
                 </Box>
 
                 <Button
-                  variant="outlined"
+                  variant="contained"
                   startIcon={<EditIcon />}
                   fullWidth
-                  sx={{ mt: 2 }}
+                  sx={{ 
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                    fontWeight: 600,
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #4f46e5 0%, #0891b2 100%)',
+                      boxShadow: '0 6px 20px rgba(99, 102, 241, 0.4)',
+                    }
+                  }}
                 >
                   Cập nhật
                 </Button>
               </CardContent>
             </Card>
-          </Grid>
+          </Box>
         ))}
-      </Grid>
+      </Box>
 
       {homestays.length === 0 && (
-        <Box sx={{ textAlign: 'center', py: 4 }}>
-          <Typography color="text.secondary">
-            Không có homestay nào để cập nhật
+        <Box sx={{ 
+          textAlign: 'center', 
+          py: 6,
+          background: 'rgba(255, 255, 255, 0.5)',
+          borderRadius: '16px',
+          border: '2px dashed rgba(0, 0, 0, 0.1)'
+        }}>
+          <Typography variant="h6" sx={{ color: '#64748b', mb: 1 }}>
+            Không có homestay nào
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+            Vui lòng tạo homestay mới để bắt đầu
           </Typography>
         </Box>
       )}
 
       {/* Update Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          Cập nhật Homestay: {selectedHomestay?.Name}
+      <Dialog 
+        open={openDialog} 
+        onClose={handleCloseDialog} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '20px',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          pb: 1,
+          background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
+          color: 'white',
+          borderRadius: '20px 20px 0 0'
+        }}>
+          <Typography variant="h5" fontWeight={700}>
+            Cập nhật Homestay: {selectedHomestay?.Name}
+          </Typography>
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+        <DialogContent sx={{ p: 4 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Basic Information */}
-            <Typography variant="h6" fontWeight={600}>Thông tin cơ bản</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+            <Box>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#1e293b' }}>
+                Thông tin cơ bản
+              </Typography>
+              <Box sx={{ 
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  md: 'repeat(2, 1fr)',
+                },
+                gap: 3
+              }}>
                 <TextField
                   label="Tên homestay"
                   value={form.name}
                   onChange={(e) => handleFormChange('name', e.target.value)}
                   fullWidth
                   required
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#6366f1',
+                      },
+                    }
+                  }}
                 />
-              </Grid>
-              <Grid item xs={12} md={6}>
                 <TextField
                   label="Địa chỉ"
                   value={form.streetAddress}
                   onChange={(e) => handleFormChange('streetAddress', e.target.value)}
                   fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#6366f1',
+                      },
+                    }
+                  }}
                 />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
+                <FormControl fullWidth sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#6366f1',
+                    },
+                  }
+                }}>
                   <InputLabel>Phường/Xã</InputLabel>
                   <Select
                     value={form.selectedWardId}
@@ -366,115 +527,177 @@ function HomestayUpdate() {
                     ))}
                   </Select>
                 </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="Mô tả"
-                  value={form.description}
-                  onChange={(e) => handleFormChange('description', e.target.value)}
-                  fullWidth
-                  multiline
-                  rows={3}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="Quy định"
-                  value={form.rules}
-                  onChange={(e) => handleFormChange('rules', e.target.value)}
-                  fullWidth
-                  multiline
-                  rows={3}
-                />
-              </Grid>
-            </Grid>
+                <Box sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}>
+                  <TextField
+                    label="Mô tả"
+                    value={form.description}
+                    onChange={(e) => handleFormChange('description', e.target.value)}
+                    fullWidth
+                    multiline
+                    rows={3}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#6366f1',
+                        },
+                      }
+                    }}
+                  />
+                </Box>
+                <Box sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}>
+                  <TextField
+                    label="Quy định"
+                    value={form.rules}
+                    onChange={(e) => handleFormChange('rules', e.target.value)}
+                    fullWidth
+                    multiline
+                    rows={3}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '12px',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#6366f1',
+                        },
+                      }
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
 
-            <Divider />
+            <Divider sx={{ my: 2 }} />
 
             {/* Amenities */}
-            <Typography variant="h6" fontWeight={600}>Tiện ích</Typography>
-            <FormControl fullWidth>
-              <InputLabel>Chọn tiện ích</InputLabel>
-              <Select
-                multiple
-                value={form.selectedAmenities}
-                onChange={(e) => handleFormChange('selectedAmenities', e.target.value)}
-                renderValue={(selected) => selected.map(id => 
-                  amenities.find(a => a.AmenityId === id)?.Name
-                ).join(', ')}
-              >
-                {amenities.map((amenity) => (
-                  <MenuItem key={amenity.AmenityId} value={amenity.AmenityId}>
-                    <Checkbox checked={form.selectedAmenities.indexOf(amenity.AmenityId) > -1} />
-                    <ListItemText primary={amenity.Name} />
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Box>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#1e293b' }}>
+                Tiện ích
+              </Typography>
+              <FormControl fullWidth sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#6366f1',
+                  },
+                }
+              }}>
+                <InputLabel>Chọn tiện ích</InputLabel>
+                <Select
+                  multiple
+                  value={form.selectedAmenities}
+                  onChange={(e) => handleFormChange('selectedAmenities', e.target.value)}
+                  renderValue={(selected) => selected.map(id => 
+                    amenities.find(a => a.AmenityId === id)?.Name
+                  ).join(', ')}
+                >
+                  {amenities.map((amenity) => (
+                    <MenuItem key={amenity.AmenityId} value={amenity.AmenityId}>
+                      <Checkbox checked={form.selectedAmenities.indexOf(amenity.AmenityId) > -1} />
+                      <ListItemText primary={amenity.Name} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
 
-            <Divider />
+            <Divider sx={{ my: 2 }} />
 
             {/* Policies */}
-            <Typography variant="h6" fontWeight={600}>Quy định</Typography>
-            <FormControl fullWidth>
-              <InputLabel>Chọn quy định</InputLabel>
-              <Select
-                multiple
-                value={form.selectedPolicies}
-                onChange={(e) => handleFormChange('selectedPolicies', e.target.value)}
-                renderValue={(selected) => selected.map(id => 
-                  policies.find(p => p.PolicyId === id)?.Name
-                ).join(', ')}
-              >
-                {policies.map((policy) => (
-                  <MenuItem key={policy.PolicyId} value={policy.PolicyId}>
-                    <Checkbox checked={form.selectedPolicies.indexOf(policy.PolicyId) > -1} />
-                    <ListItemText primary={policy.Name} />
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Box>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#1e293b' }}>
+                Quy định
+              </Typography>
+              <FormControl fullWidth sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#6366f1',
+                  },
+                }
+              }}>
+                <InputLabel>Chọn quy định</InputLabel>
+                <Select
+                  multiple
+                  value={form.selectedPolicies}
+                  onChange={(e) => handleFormChange('selectedPolicies', e.target.value)}
+                  renderValue={(selected) => selected.map(id => 
+                    policies.find(p => p.PolicyId === id)?.Name
+                  ).join(', ')}
+                >
+                  {policies.map((policy) => (
+                    <MenuItem key={policy.PolicyId} value={policy.PolicyId}>
+                      <Checkbox checked={form.selectedPolicies.indexOf(policy.PolicyId) > -1} />
+                      <ListItemText primary={policy.Name} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
 
-            <Divider />
+            <Divider sx={{ my: 2 }} />
 
             {/* Neighbourhoods */}
-            <Typography variant="h6" fontWeight={600}>Khu vực lân cận</Typography>
-            <FormControl fullWidth>
-              <InputLabel>Chọn khu vực</InputLabel>
-              <Select
-                multiple
-                value={form.selectedNeighbourhoods}
-                onChange={(e) => handleFormChange('selectedNeighbourhoods', e.target.value)}
-                renderValue={(selected) => selected.map(id => 
-                  neighbourhoods.find(n => n.NeighbourhoodId === id)?.Name
-                ).join(', ')}
-              >
-                {neighbourhoods.map((neighbourhood) => (
-                  <MenuItem key={neighbourhood.NeighbourhoodId} value={neighbourhood.NeighbourhoodId}>
-                    <Checkbox checked={form.selectedNeighbourhoods.indexOf(neighbourhood.NeighbourhoodId) > -1} />
-                    <ListItemText primary={neighbourhood.Name} />
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Box>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#1e293b' }}>
+                Khu vực lân cận
+              </Typography>
+              <FormControl fullWidth sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#6366f1',
+                  },
+                }
+              }}>
+                <InputLabel>Chọn khu vực</InputLabel>
+                <Select
+                  multiple
+                  value={form.selectedNeighbourhoods}
+                  onChange={(e) => handleFormChange('selectedNeighbourhoods', e.target.value)}
+                  renderValue={(selected) => selected.map(id => 
+                    neighbourhoods.find(n => n.NeighbourhoodId === id)?.Name
+                  ).join(', ')}
+                >
+                  {neighbourhoods.map((neighbourhood) => (
+                    <MenuItem key={neighbourhood.NeighbourhoodId} value={neighbourhood.NeighbourhoodId}>
+                      <Checkbox checked={form.selectedNeighbourhoods.indexOf(neighbourhood.NeighbourhoodId) > -1} />
+                      <ListItemText primary={neighbourhood.Name} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
 
-            <Divider />
+            <Divider sx={{ my: 2 }} />
 
             {/* Images */}
-            <Typography variant="h6" fontWeight={600}>Hình ảnh</Typography>
-            
-            {/* Current Images */}
-            {form.imagePreview.length > 0 && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" mb={1}>Ảnh hiện tại:</Typography>
-                <Grid container spacing={1}>
-                  {form.imagePreview.map((image) => (
-                    <Grid item key={image.id}>
-                      <Box sx={{ position: 'relative' }}>
+            <Box>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: '#1e293b' }}>
+                Hình ảnh
+              </Typography>
+              
+              {/* Current Images */}
+              {form.imagePreview.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" mb={2} sx={{ fontWeight: 600, color: '#475569' }}>
+                    Ảnh hiện tại:
+                  </Typography>
+                  <Box sx={{ 
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                    gap: 2
+                  }}>
+                    {form.imagePreview.map((image) => (
+                      <Box key={image.id} sx={{ position: 'relative' }}>
                         <Avatar
                           src={image.url}
                           variant="rounded"
-                          sx={{ width: 100, height: 80 }}
+                          sx={{ 
+                            width: '100%', 
+                            height: 100,
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                          }}
                         />
                         <IconButton
                           size="small"
@@ -484,6 +707,8 @@ function HomestayUpdate() {
                             right: -8,
                             bgcolor: 'error.main',
                             color: 'white',
+                            width: 24,
+                            height: 24,
                             '&:hover': { bgcolor: 'error.dark' }
                           }}
                           onClick={() => removeImage(image.id)}
@@ -499,53 +724,102 @@ function HomestayUpdate() {
                               position: 'absolute',
                               top: -8,
                               left: -8,
-                              fontSize: '0.6rem'
+                              fontSize: '0.6rem',
+                              fontWeight: 600
                             }}
                           />
                         )}
-                        <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 0.5 }}>
+                        <Typography variant="caption" sx={{ 
+                          display: 'block', 
+                          textAlign: 'center', 
+                          mt: 1,
+                          fontWeight: 600,
+                          color: '#64748b'
+                        }}>
                           Thứ tự: {image.sortOrder}
                         </Typography>
                       </Box>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            )}
-
-            {/* Upload New Images */}
-            <Box>
-              <Button
-                variant="outlined"
-                component="label"
-                startIcon={<AddIcon />}
-                disabled={uploading}
-              >
-                Thêm ảnh mới
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                />
-              </Button>
-              {uploading && (
-                <Typography variant="body2" color="info.main" sx={{ mt: 1 }}>
-                  Đang upload ảnh...
-                </Typography>
+                    ))}
+                  </Box>
+                </Box>
               )}
+
+              {/* Upload New Images */}
+              <Box>
+                <Button
+                  variant="outlined"
+                  component="label"
+                  startIcon={<AddIcon />}
+                  disabled={uploading}
+                  sx={{
+                    borderRadius: '12px',
+                    borderColor: '#6366f1',
+                    color: '#6366f1',
+                    fontWeight: 600,
+                    '&:hover': {
+                      borderColor: '#4f46e5',
+                      backgroundColor: 'rgba(99, 102, 241, 0.04)'
+                    }
+                  }}
+                >
+                  Thêm ảnh mới
+                  <input
+                    type="file"
+                    hidden
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                  />
+                </Button>
+                {uploading && (
+                  <Typography variant="body2" color="info.main" sx={{ mt: 1, fontWeight: 600 }}>
+                    Đang upload ảnh...
+                  </Typography>
+                )}
+              </Box>
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} disabled={uploading}>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button 
+            onClick={handleCloseDialog} 
+            disabled={uploading}
+            sx={{
+              borderRadius: '12px',
+              px: 3,
+              py: 1.5,
+              fontWeight: 600,
+              borderColor: '#64748b',
+              color: '#64748b',
+              '&:hover': {
+                borderColor: '#475569',
+                backgroundColor: 'rgba(100, 116, 139, 0.04)'
+              }
+            }}
+            variant="outlined"
+          >
             Hủy
           </Button>
           <Button 
             onClick={handleSubmit} 
             variant="contained" 
             disabled={uploading || !form.name.trim()}
+            sx={{
+              borderRadius: '12px',
+              px: 3,
+              py: 1.5,
+              fontWeight: 600,
+              background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #4f46e5 0%, #0891b2 100%)',
+                boxShadow: '0 6px 20px rgba(99, 102, 241, 0.4)',
+              },
+              '&:disabled': {
+                background: '#e2e8f0',
+                color: '#94a3b8'
+              }
+            }}
           >
             {uploading ? 'Đang cập nhật...' : 'Cập nhật'}
           </Button>

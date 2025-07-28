@@ -1,1 +1,1 @@
-export const API_BASE_URL = 'https://localhost:7220/';
+export const API_BASE_URL = 'https://be-studyplan.runasp.net/';

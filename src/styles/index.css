@@ -31,6 +31,70 @@ body {
   /* Bỏ display: flex và place-items: center */
 }
 
+/* Material-UI Grid system support - Override Bootstrap */
+.MuiGrid-root {
+  box-sizing: border-box !important;
+}
+
+.MuiGrid-container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.MuiGrid-item {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Override Bootstrap grid classes that might conflict */
+.container .MuiGrid-container,
+.container-fluid .MuiGrid-container {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Ensure proper flex behavior */
+.MuiGrid-item-xs-12 {
+  flex-basis: 100% !important;
+  max-width: 100% !important;
+}
+
+.MuiGrid-item-md-6 {
+  flex-basis: 50% !important;
+  max-width: 50% !important;
+}
+
+.MuiGrid-item-lg-4 {
+  flex-basis: 33.333333% !important;
+  max-width: 33.333333% !important;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 599px) {
+  .MuiGrid-item {
+    flex-basis: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 959px) {
+  .MuiGrid-item-md-6 {
+    flex-basis: 50% !important;
+    max-width: 50% !important;
+  }
+}
+
+@media (min-width: 960px) {
+  .MuiGrid-item-lg-4 {
+    flex-basis: 33.333333% !important;
+    max-width: 33.333333% !important;
+  }
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;

@@ -1,15 +1,21 @@
-const API_BASE_URL = 'https://localhost:7220/odata';
 
+import { BASE_URL } from './auth';
 export const bookingListService = {
   // Fetch all bookings with expand
   async getBookings() {
     try {
-      const response = await fetch(`${API_BASE_URL}/bookings?$expand=bookingDetails,Customer`);
-      
+      const token = localStorage.getItem("token");
+  
+      const response = await fetch(`${BASE_URL.replace('/api', '')}/odata/bookings?$expand=bookingDetails,Customer`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+  
       if (!response.ok) {
         throw new Error('Không thể tải dữ liệu');
       }
-      
+  
       const data = await response.json();
       return data.value || [];
     } catch (error) {
@@ -23,7 +29,7 @@ export const bookingListService = {
     try {
       const skip = (page - 1) * pageSize;
       const response = await fetch(
-        `${API_BASE_URL}/bookings?$expand=bookingDetails,Customer&$skip=${skip}&$top=${pageSize}`
+        `${BASE_URL.replace('/api', '')}/odata/bookings?$expand=bookingDetails,Customer&$skip=${skip}&$top=${pageSize}`
       );
       
       if (!response.ok) {

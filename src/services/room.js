@@ -2,9 +2,19 @@ import { BASE_URL } from './auth';
 
 export async function fetchMyHomestays() {
   try {
-    const res = await fetch(`${BASE_URL.replace('/api', '')}/odata/Homestays/MyHomestays()`);
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(
+      `${BASE_URL.replace('/api', '')}/odata/Homestays/MyHomestays()`,
+      {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      }
+    );
+
     if (!res.ok) throw new Error('Failed to fetch my homestays');
-    return res.json();
+    return await res.json();
   } catch (error) {
     console.error('fetchMyHomestays error:', error);
     return { value: [] };
@@ -150,6 +160,28 @@ export async function uploadImage(file) {
     return data; // API trả về object có imageUrl
   } catch (error) {
     console.error('uploadImage error:', error);
+    throw error;
+  }
+}
+
+export async function deleteRoom(roomId) {
+  try {
+    console.log('Deleting room with ID:', roomId);
+    const res = await fetch(`${BASE_URL.replace('/api', '')}/odata/Rooms/${roomId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Delete room response error:', res.status, errorText);
+      throw new Error(`Failed to delete room: ${res.status} - ${errorText}`);
+    }
+    
+    console.log('Delete room success');
+    return true;
+  } catch (error) {
+    console.error('deleteRoom error:', error);
     throw error;
   }
 }

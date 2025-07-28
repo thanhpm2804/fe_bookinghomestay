@@ -1,7 +1,8 @@
 // import { useNavigate } from "react-router-dom";
+import * as jwt_decode from "jwt-decode";
 
 
-export const BASE_URL = "https://localhost:7220/api";
+export const BASE_URL = "https://be-studyplan.runasp.net/api";
 
 export async function login(email, password) {
   const res = await fetch(`${BASE_URL}/Account/login`, {
@@ -9,7 +10,21 @@ export async function login(email, password) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  return res.json();
+
+  const data = await res.json();
+
+  if (res.ok) {
+    const decoded = jwt_decode(data.token); // Giải mã token
+
+    // Lưu vào localStorage
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("role", data.role);
+    localStorage.setItem("expiration", data.expiration);
+    localStorage.setItem("email", decoded.email);
+    localStorage.setItem("unique_name", decoded.unique_name); // hoặc nameid nếu bạn cần ID
+  }
+
+  return data;
 }
 
 export async function register(data) {

@@ -4,7 +4,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { fetchRooms, fetchAmenities, fetchBedTypes, fetchPriceTypes, addRoom, updateRoom, fetchMyHomestays, uploadImage } from '../../services/room';
+import { fetchRooms, fetchAmenities, fetchBedTypes, fetchPriceTypes, addRoom, updateRoom, deleteRoom, fetchMyHomestays, uploadImage } from '../../services/room';
 import { useEffect } from 'react';
 
 // Dữ liệu phòng mẫu (giả lập)
@@ -71,6 +71,24 @@ function RoomManagement() {
   const [pageSize, setPageSize] = useState(10);
   const [totalRooms, setTotalRooms] = useState(0);
   const [searchName, setSearchName] = useState('');
+  
+  // Notification states
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+  
+  // Delete confirmation dialog states
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [roomToDelete, setRoomToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // Auto hide notification
+  useEffect(() => {
+    if (notification.show) {
+      const timer = setTimeout(() => {
+        setNotification({ show: false, message: '', type: 'success' });
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification.show]);
 
   // Lấy dữ liệu từ API khi load trang
   useEffect(() => {
@@ -220,15 +238,15 @@ function RoomManagement() {
     try {
       // Validation
       if (!form.name || !form.name.trim()) {
-        alert('Vui lòng nhập tên phòng');
+        setNotification({ show: true, message: 'Vui lòng nhập tên phòng', type: 'error' });
         return;
       }
       if (!form.capacity || Number(form.capacity) <= 0) {
-        alert('Vui lòng nhập sức chứa hợp lệ');
+        setNotification({ show: true, message: 'Vui lòng nhập sức chứa hợp lệ', type: 'error' });
         return;
       }
       if (!selectedHomestayId) {
-        alert('Vui lòng chọn homestay');
+        setNotification({ show: true, message: 'Vui lòng chọn homestay', type: 'error' });
         return;
       }
       // Nếu có ảnh mới được chọn, upload trước
@@ -243,7 +261,7 @@ function RoomManagement() {
           console.log('Final image URL:', finalImgUrl);
         } catch (uploadError) {
           console.error('Upload failed:', uploadError);
-          alert('Upload ảnh thất bại. Vui lòng thử lại.');
+          setNotification({ show: true, message: 'Upload ảnh thất bại. Vui lòng thử lại.', type: 'error' });
           setUploading(false);
           return; // Dừng lại nếu upload thất bại
         } finally {
@@ -302,15 +320,19 @@ function RoomManagement() {
       }
 
       console.log('Room data to submit:', roomData);
+      console.log('editingRoom value:', editingRoom);
+      console.log('isUpdate check:', !!editingRoom);
 
       if (editingRoom) {
         // Thêm roomId khi update
         roomData.roomId = editingRoom.roomId || editingRoom.RoomId;
         console.log('Updating room with ID:', roomData.roomId);
         await updateRoom(editingRoom.roomId || editingRoom.RoomId, roomData);
+        setNotification({ show: true, message: 'Cập nhật phòng thành công!', type: 'success' });
       } else {
         console.log('Adding new room');
         await addRoom(roomData);
+        setNotification({ show: true, message: 'Thêm phòng thành công!', type: 'success' });
       }
 
       // Sau khi thêm/sửa, reload lại danh sách phòng
@@ -322,7 +344,7 @@ function RoomManagement() {
     } catch (error) {
       console.error('Submit failed:', error);
       const errorMessage = error.message || 'Thêm/cập nhật phòng thất bại. Vui lòng thử lại.';
-      alert(errorMessage);
+      setNotification({ show: true, message: errorMessage, type: 'error' });
     }
   };
   // Xử lý search
@@ -353,8 +375,44 @@ function RoomManagement() {
   };
 
   // Xóa phòng
-  const handleDelete = (id) => {
-    setRooms(rooms.filter(r => r.id !== id));
+  const handleDelete = (room) => {
+    setRoomToDelete(room);
+    setDeleteDialogOpen(true);
+  };
+
+  // Xác nhận xóa phòng
+  const handleConfirmDelete = async () => {
+    if (!roomToDelete) return;
+    
+    setDeleting(true);
+    try {
+      const roomId = roomToDelete.RoomId || roomToDelete.roomId;
+      await deleteRoom(roomId);
+      
+      setNotification({ show: true, message: 'Xóa phòng thành công!', type: 'success' });
+      
+      // Reload room list
+      const skip = (currentPage - 1) * pageSize;
+      const roomData = await fetchRooms(selectedHomestayId, skip, pageSize, searchName);
+      setRooms(roomData.value || []);
+      setTotalRooms(roomData['@odata.count'] || 0);
+      
+      // Close dialog
+      setDeleteDialogOpen(false);
+      setRoomToDelete(null);
+    } catch (error) {
+      console.error('Delete failed:', error);
+      const errorMessage = error.message || 'Xóa phòng thất bại. Vui lòng thử lại.';
+      setNotification({ show: true, message: errorMessage, type: 'error' });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // Hủy xóa phòng
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setRoomToDelete(null);
   };
 
   // Thêm/xóa dòng động cho các array field
@@ -418,6 +476,42 @@ function RoomManagement() {
 
   return (
     <Box sx={{ width: '100%', p: 3, boxSizing: 'border-box', background: '#fff', borderRadius: 3, boxShadow: 2 }}>
+      {/* Success/Error Notification */}
+      {notification.show && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 20,
+            right: 20,
+            zIndex: 9999,
+            backgroundColor: notification.type === 'success' ? '#4caf50 !important' : '#f44336 !important',
+            color: 'white !important',
+            padding: '12px 20px',
+            borderRadius: '8px',
+            boxShadow: notification.type === 'success' 
+              ? '0 4px 12px rgba(76, 175, 80, 0.3)' 
+              : '0 4px 12px rgba(244, 67, 54, 0.3)',
+            minWidth: '250px',
+            fontWeight: 600,
+            fontSize: '14px',
+            animation: 'slideInRight 0.3s ease-out',
+            pointerEvents: 'none',
+            '@keyframes slideInRight': {
+              '0%': {
+                transform: 'translateX(100%)',
+                opacity: 0
+              },
+              '100%': {
+                transform: 'translateX(0)',
+                opacity: 1
+              }
+            }
+          }}
+        >
+          {notification.message}
+        </Box>
+      )}
+
       {/* Header với title và button thêm */}
       <Box
   sx={{
@@ -574,7 +668,7 @@ function RoomManagement() {
                 </TableCell>
                 <TableCell align="right">
                   <IconButton color="primary" onClick={() => handleOpenDialog(room)}><EditIcon /></IconButton>
-                  <IconButton color="error" onClick={() => handleDelete(room.id)}><DeleteIcon /></IconButton>
+                  <IconButton color="error" onClick={() => handleDelete(room)}><DeleteIcon /></IconButton>
                 </TableCell>
               </TableRow>
             ))}
@@ -770,6 +864,38 @@ function RoomManagement() {
             disabled={uploading}
           >
             {uploading ? 'Đang xử lý...' : (editingRoom ? 'Cập nhật' : 'Thêm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleCancelDelete} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ color: '#ef4444', fontWeight: 600 }}>
+          Xác nhận xóa phòng
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Bạn có chắc chắn muốn xóa phòng <strong>"{roomToDelete?.Name || roomToDelete?.name}"</strong>?
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Hành động này không thể hoàn tác. Tất cả thông tin về phòng này sẽ bị xóa vĩnh viễn.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelDelete} disabled={deleting}>
+            Hủy
+          </Button>
+          <Button 
+            onClick={handleConfirmDelete} 
+            variant="contained" 
+            color="error"
+            disabled={deleting}
+            sx={{
+              backgroundColor: '#ef4444',
+              '&:hover': { backgroundColor: '#dc2626' }
+            }}
+          >
+            {deleting ? 'Đang xóa...' : 'Xóa phòng'}
           </Button>
         </DialogActions>
       </Dialog>

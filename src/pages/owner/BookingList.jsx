@@ -134,7 +134,7 @@ function BookingList() {
           </Typography>
 
           {/* Simple Filters */}
-          <Paper sx={{ p: 3, mb: 3, boxShadow: 1 }}>
+          <Paper sx={{ p: 3, mb: 3, boxShadow: 1,justifyContent:'center',alignItems:'center' }}>
             <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
               Tìm Kiếm & Lọc
             </Typography>
@@ -242,7 +242,7 @@ function BookingList() {
                       <TableCell sx={{ fontWeight: 'bold' }}>Check-out</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>Tổng tiền</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Thao tác</TableCell>
+                     
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -289,25 +289,7 @@ function BookingList() {
                               {booking.TotalAmount?.toLocaleString('vi-VN')} ₫
                             </Typography>
                           </TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                              <Tooltip title="Xem chi tiết">
-                                <IconButton size="small" color="primary">
-                                  <Visibility />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Chỉnh sửa">
-                                <IconButton size="small" color="secondary">
-                                  <Edit />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Xóa">
-                                <IconButton size="small" color="error">
-                                  <Delete />
-                                </IconButton>
-                              </Tooltip>
-                            </Box>
-                          </TableCell>
+                          
                         </TableRow>
                       ))
                     )}

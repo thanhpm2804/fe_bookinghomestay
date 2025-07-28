@@ -1,3 +1,4 @@
+import { BASE_URL } from '../services/auth';
 import React, { useState } from 'react';
 import {
   Box,
@@ -39,7 +40,7 @@ function Login() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/Account/login', {
+      const res = await fetch(`${BASE_URL}/Account/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
