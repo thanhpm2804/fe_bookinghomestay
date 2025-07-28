@@ -4,17 +4,22 @@ import { fetchDistricts, fetchWards } from "../services/location";
 
 const GuestSearchBar = ({ onSearch }) => {
   const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
+  // Đã xóa: const [address, setAddress] = useState("");
   const [district, setDistrict] = useState("");
   const [ward, setWard] = useState("");
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
+  const [error, setError] = useState("");
 
   // State cho dữ liệu từ API
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
   const [loadingDistricts, setLoadingDistricts] = useState(true);
   const [loadingWards, setLoadingWards] = useState(false);
+
+  // Lấy ngày hôm nay (YYYY-MM-DD)
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
 
   // Lấy danh sách quận/huyện khi component mount
   useEffect(() => {
@@ -56,10 +61,19 @@ const GuestSearchBar = ({ onSearch }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("GuestSearchBar - Submitting:", { name, address, district, ward, checkIn, checkOut });
-    
+    setError("");
+    // Validate ngày checkin >= hôm nay
+    if (checkIn && checkIn < todayStr) {
+      setError("Ngày nhận phòng không được nhỏ hơn hôm nay.");
+      return;
+    }
+    // Validate ngày checkout > checkin
+    if (checkIn && checkOut && checkOut <= checkIn) {
+      setError("Ngày trả phòng phải lớn hơn ngày nhận phòng.");
+      return;
+    }
     if (onSearch) {
-      onSearch({ name, address, district, ward, checkIn, checkOut });
+      onSearch({ name, district, ward, checkIn, checkOut });
     }
   };
 
@@ -70,15 +84,9 @@ const GuestSearchBar = ({ onSearch }) => {
 
   return (
     <form className="guest-search-bar" onSubmit={handleSubmit}>
-      {/* Hàng đầu tiên: Địa chỉ, Quận/Huyện, Phường/Xã, Check-in, Check-out */}
+      {error && <div style={{color: 'red', marginBottom: 8, fontWeight: 500}}>{error}</div>}
+      {/* Hàng đầu tiên: Quận/Huyện, Phường/Xã, Check-in, Check-out */}
       <div className="search-row">
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Địa chỉ"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-        />
         <select
           className="search-input"
           value={district}
@@ -113,12 +121,14 @@ const GuestSearchBar = ({ onSearch }) => {
           type="date"
           className="date-input"
           value={checkIn}
+          min={todayStr}
           onChange={(e) => setCheckIn(e.target.value)}
         />
         <input
           type="date"
           className="date-input"
           value={checkOut}
+          min={checkIn ? getNextDay(checkIn) : todayStr}
           onChange={(e) => setCheckOut(e.target.value)}
         />
       </div>
@@ -137,5 +147,12 @@ const GuestSearchBar = ({ onSearch }) => {
     </form>
   );
 };
+
+// Hàm lấy ngày tiếp theo (YYYY-MM-DD)
+function getNextDay(dateStr) {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().split('T')[0];
+}
 
 export default GuestSearchBar;

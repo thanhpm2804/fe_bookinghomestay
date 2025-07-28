@@ -7,22 +7,23 @@ import "../styles/Toolbar.css";
 const Toolbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
+  console.log('isAuthenticated:', isAuthenticated, 'user:', user);
   const navigate = useNavigate();
 
   // Đóng dropdown khi click bên ngoài
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+  //       setIsDropdownOpen(false);
+  //     }
+  //   };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
 
   const handleLogout = () => {
     logout();
@@ -40,12 +41,12 @@ const Toolbar = () => {
       {/* Logo bên trái */}
       <div className="toolbar-logo">
         <img 
-          src="/vite.svg" 
-          alt="Logo" 
-          className="logo-image"
+          src="https://img.freepik.com/premium-vector/hotel-homestay-logo-with-shape-house-tree-homestay-natural-logo-simple-icon-vector_150826-265.jpg?w=2000" 
+          alt="Homestay Booking Logo" 
+          className="logo-image large-logo"
           onClick={() => navigate("/home")}
         />
-        <span className="logo-text">MyApp</span>
+        <span className="logo-title">HealingLand</span>
       </div>
 
       {/* Dropdown menu bên phải */}
@@ -84,7 +85,7 @@ const Toolbar = () => {
                 </div>
                 <div 
                   className="dropdown-item"
-                  onClick={() => handleNavigation("/signup")}
+                  onClick={() => handleNavigation("/register")}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M15 4A4 4 0 0 0 15 12A4 4 0 0 0 15 4M15 5.8C16.68 5.8 18 7.08 18 8.8C18 10.52 16.68 11.8 15 11.8A2.8 2.8 0 0 1 12.2 8.8A2.8 2.8 0 0 1 15 5.8M4 7V10H1V12H4V15H6V12H9V10H6V7H4M15 13C12.33 13 7 14.33 7 17V20H23V17C23 14.33 17.67 13 15 13M15 14.9C17.97 14.9 21.1 16.36 21.1 17V18.1H8.9V17C8.9 16.36 12 14.9 15 14.9Z" fill="currentColor"/>
