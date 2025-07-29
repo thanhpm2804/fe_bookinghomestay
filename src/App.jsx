@@ -25,6 +25,7 @@ import RequireRole from "./components/RequireRole";
 import PaymentSuccess from "./pages/payments/PaymentSuccess";
 import CreateHomestayPage from "./pages/homestays/CreateHomestayPage";
 import CreateHomestaySuccess from "./pages/homestays/CreateHomestaySuccess";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
         <Route path="/homestay-detail/:id" element={<HomestayDetailPage />} />
         <Route path="/create-homestay" element={<CreateHomestayPage />} />
         <Route path="/confirm-booking" element={<ConfirmBookingPage />} />
+        <Route path="/admin" element={<AdminDashboard />} />
 
         <Route path="/unauthorized" element={<Unauthorized />} />
 

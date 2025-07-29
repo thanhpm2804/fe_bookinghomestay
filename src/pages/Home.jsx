@@ -8,14 +8,14 @@ import GuestSearchBar from "../components/GuestSearchBar";
 import Footer from "../components/Footer";
 import { fetchDistricts, fetchWards } from "../services/location";
 import styles from "./home/home.module.css";
-
+import { useNavigate } from "react-router-dom";
 function Home() {
   const [homestays, setHomestays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchAllData = async () => {
       try {
@@ -188,7 +188,7 @@ function Home() {
                     <p className={styles.rules}>{homestay.Description}</p>
                     <div className={styles.priceSection}>
                       {getStatusDisplay(homestay)}
-                      <button className={styles.bookButton}>Đặt ngay</button>
+                      <button className={styles.bookButton} onClick={() => navigate(`/homestay-detail/${homestay.HomestayId}`)}>Đặt ngay</button>
                     </div>
                   </div>
                 </div>
