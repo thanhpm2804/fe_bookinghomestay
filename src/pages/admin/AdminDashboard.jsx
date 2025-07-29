@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../configs/apiConfig';
 import PeopleIcon from '@mui/icons-material/People';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import AddBusinessIcon from '@mui/icons-material/AddBusiness';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ViewTotalRevenue from '../../components/admin/ViewTotalRevenue';
 
@@ -87,6 +88,11 @@ function AdminDashboard() {
     setTab(newValue);
   };
 
+  // Handle create homestay navigation
+  const handleCreateHomestay = () => {
+    navigate('/create-homestay');
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       {/* Header */}
@@ -111,19 +117,41 @@ function AdminDashboard() {
           >
             Admin Dashboard
           </Typography>
-          <IconButton 
-            onClick={handleLogout}
-            sx={{ 
-              color: 'white',
-              '&:hover': { 
-                backgroundColor: 'rgba(255,255,255,0.1)',
-                transform: 'scale(1.05)'
-              },
-              transition: 'all 0.2s ease-in-out'
-            }}
-          >
-            <LogoutIcon />
-          </IconButton>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Button
+              variant="contained"
+              startIcon={<AddBusinessIcon />}
+              onClick={handleCreateHomestay}
+              sx={{
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                border: '1px solid rgba(255,255,255,0.3)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.3)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                },
+                transition: 'all 0.2s ease-in-out',
+                textTransform: 'none',
+                fontWeight: 600
+              }}
+            >
+              Create Homestay
+            </Button>
+            <IconButton 
+              onClick={handleLogout}
+              sx={{ 
+                color: 'white',
+                '&:hover': { 
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  transform: 'scale(1.05)'
+                },
+                transition: 'all 0.2s ease-in-out'
+              }}
+            >
+              <LogoutIcon />
+            </IconButton>
+          </Box>
         </Toolbar>
         
         {/* Enhanced Tab Bar */}

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './OwnerInformationStep.module.css';
+import { API_BASE_URL } from '../../../configs/apiConfig';
+import { checkEmailExit } from '../../../services/auth';
 
 const OwnerInformationStep = ({ data, onChange, onNext, loading }) => {
   const [formData, setFormData] = useState({
@@ -14,6 +16,7 @@ const OwnerInformationStep = ({ data, onChange, onNext, loading }) => {
   });
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 
   useEffect(() => {
     if (data) {
@@ -23,6 +26,12 @@ const OwnerInformationStep = ({ data, onChange, onNext, loading }) => {
       }
     }
   }, [data]);
+
+  // Function to check if email exists
+  const checkEmailExists = async (email) => {
+    const response = await checkEmailExit(email);
+    return response;
+  }
 
   const validateField = (name, value) => {
     switch (name) {
@@ -126,10 +135,36 @@ const OwnerInformationStep = ({ data, onChange, onNext, loading }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
-    if (isFormValid()) {
+  const handleNext = async () => {
+    if (!isFormValid()) {
+      return;
+    }
+
+    // Check if email exists before proceeding
+    setIsCheckingEmail(true);
+    try {
+      const emailExists = await checkEmailExists(formData.email);
+      
+      if (emailExists) {
+        setErrors(prev => ({
+          ...prev,
+          email: 'Email này đã tồn tại trong hệ thống. Vui lòng sử dụng email khác.'
+        }));
+        setIsCheckingEmail(false);
+        return;
+      }
+
+      // Email doesn't exist, proceed to next step
       onChange(formData);
       onNext();
+    } catch (error) {
+      console.error('Error during email validation:', error);
+      setErrors(prev => ({
+        ...prev,
+        email: 'Có lỗi xảy ra khi kiểm tra email. Vui lòng thử lại.'
+      }));
+    } finally {
+      setIsCheckingEmail(false);
     }
   };
 
@@ -341,12 +376,12 @@ const OwnerInformationStep = ({ data, onChange, onNext, loading }) => {
             type="button"
             className="btn btn-primary"
             onClick={handleNext}
-            disabled={loading}
+            disabled={loading || isCheckingEmail}
           >
-            {loading ? (
+            {loading || isCheckingEmail ? (
               <>
                 <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Đang xử lý...
+                {isCheckingEmail ? 'Đang kiểm tra email...' : 'Đang xử lý...'}
               </>
             ) : (
               <>

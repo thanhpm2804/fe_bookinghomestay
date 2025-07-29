@@ -76,7 +76,7 @@ const AvailableRooms = ({ checkIn, checkOut, rooms, onFilterRooms,  onSelectRoom
               selected={checkOutDate}
               onChange={(date) => {
                 const checkOutFormatted = format(date, 'yyyy-MM-dd');
-                onCheckInDateChange(checkOutFormatted)
+                onCheckOutDateChange(checkOutFormatted)
                 setCheckOutDate(date)
               }}
               dateFormat="dd/MM/yyyy"

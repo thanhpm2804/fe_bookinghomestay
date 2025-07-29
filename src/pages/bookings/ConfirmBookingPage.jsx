@@ -23,6 +23,7 @@ const ConfirmBookingPage = () => {
         console.log('Received booking data:', bookingData);
         const loadUserInfor = async () => {
             const userInfoData = await getUserInfor();
+            console.log('userInfoData: ', userInfoData)
             if (userInfoData) {
                 setGuestInfo({
                     fullName: `${userInfoData.lastName} ${userInfoData.firstName}`,

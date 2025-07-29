@@ -61,40 +61,63 @@ export async function apiFetch(basePath, endpoint, options = {}) {
   return fetch(url, options);
 }
 
+export const checkEmailExit = async (email) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${BASE_URL}/Account/check-email-exists?email=${encodeURIComponent(email)}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log('check email exist: ', response)
+    if (!response.ok) {
+      throw new Error('Failed to check email');
+    }
 
-export const createOwnerAccount = async (ownerData) =>{
-    try {
-            const url = `${BASE_URL}/Account/create-owner-account`;
-            const newOwnerData = {
-                firstName: ownerData.firstName,
-                lastName: ownerData.lastName,
-                gender: parseInt(ownerData.gender),
-                dateOfBirth: ownerData.dateOfBirth,
-                email: ownerData.email,
-                phoneNumber: ownerData.phoneNumber,
-                address: ownerData.address,
-                avatarUrl: ownerData.avatarUrl,
-            }
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    const data = await response.json();
+    return data.isExist || false;
+  } catch (error) {
+    console.error('Error checking email:', error);
+    // If there's an error checking, we'll assume the email doesn't exist to avoid blocking the user
+    return false;
+  }
+}
 
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(newOwnerData)
-            });
-    
-            if (!response.ok) {
-                const errorData = await response.json();
-                return { error: errorData.error || `HTTP error! Status: ${response.status}` };
-            }
-    
-            const data = await response.json();
-            return data;
-    
-        } catch (error) {
-            console.log(error);
-            return { error: "An unexpected error occurred" };
-        }
+export const createOwnerAccount = async (ownerData) => {
+  try {
+    const url = `${BASE_URL}/Account/create-owner-account`;
+    const newOwnerData = {
+      firstName: ownerData.firstName,
+      lastName: ownerData.lastName,
+      gender: parseInt(ownerData.gender),
+      dateOfBirth: ownerData.dateOfBirth,
+      email: ownerData.email,
+      phoneNumber: ownerData.phoneNumber,
+      address: ownerData.address,
+      avatarUrl: ownerData.avatarUrl,
+    }
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newOwnerData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { error: errorData.error || `HTTP error! Status: ${response.status}` };
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    console.log(error);
+    return { error: "An unexpected error occurred" };
+  }
 }

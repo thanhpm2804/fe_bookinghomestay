@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './CreateHomestayPage.module.css';
 import ProgressBar from '../../components/homestay/createHomestay/ProgressBar';
@@ -9,6 +9,7 @@ import RoomsCreationStep from '../../components/homestay/createHomestay/RoomsCre
 import { addRoom, uploadImage } from '../../services/room';
 import { createOwnerAccount } from '../../services/auth';
 import { createHomestay } from '../../services/homestayService';
+import { jwtDecode } from 'jwt-decode';
 
 const CreateHomestayPage = () => {
   const navigate = useNavigate();
@@ -20,7 +21,28 @@ const CreateHomestayPage = () => {
     rooms: { rooms: [] }
   });
   const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const token = localStorage.getItem('token');
 
+    if (!token) {
+      
+      navigate('/home');
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      const userRole = decoded.role || decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+      if (userRole !== 'Admin') {
+        
+        navigate('/home');
+        return;
+      }
+    } catch (error) {
+      navigate('/home');
+      return;
+    }
+  }, [navigate]);
   const steps = [
     { id: 1, title: 'Thông tin chủ homestay', icon: 'bi-person' },
     { id: 2, title: 'Thông tin cơ bản', icon: 'bi-house' },
@@ -69,7 +91,7 @@ const CreateHomestayPage = () => {
 
       // Extract room data from FormData if it exists
       let roomsData = formData.rooms.rooms || [];
-      
+
       // If submitData is FormData, try to get the JSON data
       if (submitData instanceof FormData) {
         const homestayData = submitData.get('homestayData');
@@ -143,19 +165,19 @@ const CreateHomestayPage = () => {
       const createHomestayResponse = await createHomestay(newHomestayData);
       if (!createHomestayResponse?.error && createHomestayResponse?.homestay?.HomestayId) {
         const homestayId = createHomestayResponse.homestay.HomestayId;
-        
+
         // Process rooms
         if (roomsData.length > 0) {
           for (let i = 0; i < roomsData.length; i++) {
             const room = roomsData[i];
             console.log('Processing room:', room);
-            
+
             // Get the image file from FormData if available
             let roomImageFile = null;
             if (submitData instanceof FormData) {
               roomImageFile = submitData.get(`roomImages[${i}]`);
             }
-            
+
             const roomData = await convertRoomDataToApiParam(room, homestayId, roomImageFile);
             console.log('Converted room data:', roomData);
             const createRoomResponse = await addRoom(roomData);
@@ -184,7 +206,7 @@ const CreateHomestayPage = () => {
     const roomPrices = [{ PriceTypeId: 1, AmountPerNight: room.price }];
     const roomAmenities = room.amenities.map(amenity => ({ AmenityId: amenity }));
     let roomImgUrl = 'img';
-    
+
     if (roomImageFile) {
       const cloudImgResponse = await uploadImage(roomImageFile);
       if (cloudImgResponse?.imageUrl) {
